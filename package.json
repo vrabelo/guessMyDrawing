@@ -1,0 +1,18 @@
+{
+  "name": "tipp-my-draw",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @tipp-my-draw/api\" \"npm run dev -w @tipp-my-draw/web\"",
+    "dev:api": "npm run dev -w @tipp-my-draw/api",
+    "dev:web": "npm run dev -w @tipp-my-draw/web",
+    "build": "npm run build -w @tipp-my-draw/shared && npm run build -w @tipp-my-draw/api && npm run build -w @tipp-my-draw/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
