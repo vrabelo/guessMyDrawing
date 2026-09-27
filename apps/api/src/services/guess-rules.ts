@@ -16,26 +16,3 @@ export function drawerPointsForAttempt(attemptNumber: number): number {
 }
 
 export const MAX_GUESS_ATTEMPTS = 3;
-
-export class GuessSessionStore {
-  private readonly attempts = new Map<string, number>();
-
-  private key(guesserId: string, drawingId: string): string {
-    return `${guesserId}:${drawingId}`;
-  }
-
-  getAttemptsUsed(guesserId: string, drawingId: string): number {
-    return this.attempts.get(this.key(guesserId, drawingId)) ?? 0;
-  }
-
-  /** Increments and returns the new attempts-used count. */
-  consumeAttempt(guesserId: string, drawingId: string): number {
-    const next = this.getAttemptsUsed(guesserId, drawingId) + 1;
-    this.attempts.set(this.key(guesserId, drawingId), next);
-    return next;
-  }
-
-  clear(guesserId: string, drawingId: string): void {
-    this.attempts.delete(this.key(guesserId, drawingId));
-  }
-}

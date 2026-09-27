@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f3efe6;
-  --ink: #1c1917;
-  --accent: #0f766e;
-  --accent-hover: #0d9488;
-  --panel: #fffcf7;
-  --border: #d6d3d1;
+  --bg: #0f0f10;
+  --panel: #1a1a1c;
+  --panel-elevated: #242428;
+  --ink: #f5f5f5;
+  --muted: #a1a1aa;
+  --border: #2e2e32;
+  --accent: #e4e4e7;
+  --accent-hover: #ffffff;
+  --danger: #f87171;
 }
 
 body {
@@ -15,6 +18,6 @@ body {
   font-family: "Segoe UI", system-ui, sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(ellipse at top, #e7e5e4 0%, transparent 55%),
-    linear-gradient(160deg, #f3efe6 0%, #e7e5e4 100%);
+    radial-gradient(ellipse at top, #1c1c1f 0%, transparent 50%),
+    var(--bg);
 }

@@ -1,10 +1,12 @@
 import type {
+  AvailableDrawing,
   CreateDrawingRequest,
   GuessResponse,
   LeaderboardsResponse,
   LoginRequest,
   LoginResponse,
   PublicDrawing,
+  UserDrawingProgress,
 } from "@tipp-my-draw/shared";
 
 const TOKEN_KEY = "tipp-my-draw-token";
@@ -69,8 +71,8 @@ export const api = {
     return request("/api/auth/register", { method: "POST", body: "{}" });
   },
 
-  randomDrawing(): Promise<PublicDrawing> {
-    return request("/api/drawings/random");
+  availableDrawings(): Promise<AvailableDrawing[]> {
+    return request("/api/drawings/available");
   },
 
   createDrawing(body: CreateDrawingRequest) {
@@ -80,14 +82,20 @@ export const api = {
     });
   },
 
-  guess(
+  revealHint(
     drawingId: string,
-    guess: string,
-    hintsUsed: number
-  ): Promise<GuessResponse> {
+    hint: 1 | 2 | 3
+  ): Promise<UserDrawingProgress> {
+    return request(`/api/drawings/${drawingId}/progress`, {
+      method: "PATCH",
+      body: JSON.stringify({ revealHint: hint }),
+    });
+  },
+
+  guess(drawingId: string, guess: string): Promise<GuessResponse> {
     return request(`/api/drawings/${drawingId}/guess`, {
       method: "POST",
-      body: JSON.stringify({ guess, hintsUsed }),
+      body: JSON.stringify({ guess }),
     });
   },
 
@@ -95,3 +103,28 @@ export const api = {
     return request("/api/leaderboards");
   },
 };
+
+export function createDrawingsSocket(
+  onCreated: (drawing: PublicDrawing) => void
+): WebSocket | null {
+  const token = getStoredToken();
+  if (!token) return null;
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const ws = new WebSocket(
+    `${proto}//${window.location.host}/ws?token=${encodeURIComponent(token)}`
+  );
+  ws.onmessage = (ev) => {
+    try {
+      const data = JSON.parse(String(ev.data)) as {
+        type?: string;
+        drawing?: PublicDrawing;
+      };
+      if (data.type === "drawing.created" && data.drawing) {
+        onCreated(data.drawing);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+  return ws;
+}

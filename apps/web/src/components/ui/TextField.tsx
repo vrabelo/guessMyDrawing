@@ -13,14 +13,15 @@ export function TextField({
   const inputId = id ?? rest.name;
 
   return (
-    <label className="flex w-full flex-col gap-1 text-sm">
+    <label className="flex w-full flex-col gap-1.5 text-sm">
       {label ? (
-        <span className="font-medium text-stone-700">{label}</span>
+        <span className="font-medium text-[var(--muted)]">{label}</span>
       ) : null}
       <input
         id={inputId}
         className={[
-          "rounded-md border border-[var(--border)] bg-white px-3 py-2 outline-none",
+          "rounded-2xl border border-[var(--border)] bg-[var(--panel-elevated)] px-4 py-2.5 text-[var(--ink)] outline-none",
+          "placeholder:text-[var(--muted)]",
           "focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]",
           className,
         ].join(" ")}

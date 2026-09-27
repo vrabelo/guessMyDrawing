@@ -41,11 +41,11 @@ export function AuthScreen({ onLoggedIn }: AuthScreenProps) {
   }
 
   return (
-    <div className="mx-auto mt-16 w-full max-w-sm rounded-xl border border-[var(--border)] bg-[var(--panel)] p-6 shadow-sm">
-      <h1 className="mb-1 text-center text-2xl font-semibold tracking-tight">
+    <div className="mx-auto mt-16 w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-6">
+      <h1 className="mb-1 text-center text-2xl font-semibold tracking-tight text-[var(--ink)]">
         Tipp my draw
       </h1>
-      <p className="mb-6 text-center text-sm text-stone-500">
+      <p className="mb-6 text-center text-sm text-[var(--muted)]">
         Rajzolj és tippelj
       </p>
 
@@ -65,7 +65,7 @@ export function AuthScreen({ onLoggedIn }: AuthScreenProps) {
           onChange={(e) => setPass(e.target.value)}
           autoComplete="current-password"
         />
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
         <div className="mt-2 flex gap-2">
           <Button label="Login" variant="primary" type="submit" fullWidth />
           <Button

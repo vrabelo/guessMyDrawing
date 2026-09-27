@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
-import type { PublicDrawing } from "@tipp-my-draw/shared";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import type {
+  AvailableDrawing,
+  PublicDrawing,
+  UserDrawingProgress,
+} from "@tipp-my-draw/shared";
 import { Button } from "../components/ui/Button";
-import { TextField } from "../components/ui/TextField";
-import { api } from "../api/client";
+import { Card } from "../components/ui/Card";
+import { api, createDrawingsSocket } from "../api/client";
+import { HintPanel } from "./play/HintPanel";
+import { PuzzleImageCard } from "./play/PuzzleImageCard";
+import { GuessCard } from "./play/GuessCard";
 
 type PlayPanelProps = {
   onScored: () => void;
@@ -10,52 +17,115 @@ type PlayPanelProps = {
 
 const MAX_ATTEMPTS = 3;
 
+function emptyHints(): [boolean, boolean, boolean] {
+  return [false, false, false];
+}
+
 export function PlayPanel({ onScored }: PlayPanelProps) {
-  const [drawing, setDrawing] = useState<PublicDrawing | null>(null);
+  const [pool, setPool] = useState<AvailableDrawing[]>([]);
+  const [index, setIndex] = useState(0);
   const [error, setError] = useState("");
   const [guess, setGuess] = useState("");
   const [feedback, setFeedback] = useState("");
-  const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS);
-  const [revealed, setRevealed] = useState<Record<1 | 2 | 3, boolean>>({
-    1: false,
-    2: false,
-    3: false,
-  });
+  const [loading, setLoading] = useState(true);
 
-  const loadRandom = useCallback(async () => {
+  const loadPool = useCallback(async () => {
+    setLoading(true);
     setError("");
-    setFeedback("");
-    setGuess("");
-    setAttemptsLeft(MAX_ATTEMPTS);
-    setRevealed({ 1: false, 2: false, 3: false });
     try {
-      const d = await api.randomDrawing();
-      setDrawing(d);
+      const list = await api.availableDrawings();
+      setPool(list);
+      setIndex((i) => (list.length === 0 ? 0 : Math.min(i, list.length - 1)));
     } catch (err) {
-      setDrawing(null);
       setError(err instanceof Error ? err.message : "Nem sikerült betölteni.");
+      setPool([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void loadRandom();
-  }, [loadRandom]);
+    void loadPool();
+  }, [loadPool]);
 
-  const hints: Record<1 | 2 | 3, string> = {
-    1: drawing?.hint1 ?? "",
-    2: drawing?.hint2 ?? "",
-    3: drawing?.hint3 ?? "",
-  };
+  useEffect(() => {
+    const ws = createDrawingsSocket((drawing: PublicDrawing) => {
+      setPool((prev) => {
+        if (prev.some((d) => d.id === drawing.id)) return prev;
+        const next: AvailableDrawing = { ...drawing, progress: null };
+        return [...prev, next];
+      });
+    });
+    return () => {
+      ws?.close();
+    };
+  }, []);
 
-  const hintsUsed = ([1, 2, 3] as const).filter((n) => revealed[n]).length;
+  const current = pool[index] ?? null;
+
+  const progress: UserDrawingProgress | null = current?.progress ?? null;
+  const status = progress?.status ?? null;
+  const hintsRevealed = progress?.hintsRevealed ?? emptyHints();
+  const attemptsUsed = progress?.attemptsUsed ?? 0;
+  const attemptsLeft =
+    status === "solved" || status === "failed"
+      ? 0
+      : MAX_ATTEMPTS - attemptsUsed;
+  const locked = status === "solved" || status === "failed";
+
+  const hintTexts = useMemo(
+    () =>
+      ({
+        1: current?.hint1 ?? "",
+        2: current?.hint2 ?? "",
+        3: current?.hint3 ?? "",
+      }) as Record<1 | 2 | 3, string>,
+    [current]
+  );
+
+  function updateCurrentProgress(p: UserDrawingProgress, answer?: string) {
+    setPool((prev) =>
+      prev.map((d) =>
+        d.id === p.drawingId
+          ? {
+              ...d,
+              progress: p,
+              ...(answer != null ? { answer } : {}),
+            }
+          : d
+      )
+    );
+  }
+
+  function removeFromPool(drawingId: string) {
+    setPool((prev) => {
+      const next = prev.filter((d) => d.id !== drawingId);
+      setIndex((i) => {
+        if (next.length === 0) return 0;
+        return Math.min(i, next.length - 1);
+      });
+      return next;
+    });
+  }
+
+  async function handleReveal(n: 1 | 2 | 3) {
+    if (!current || locked || hintsRevealed[n - 1]) return;
+    try {
+      const p = await api.revealHint(current.id, n);
+      updateCurrentProgress(p);
+    } catch (err) {
+      setFeedback(err instanceof Error ? err.message : "Hint mentés hiba.");
+    }
+  }
 
   async function handleGuess(e: FormEvent) {
     e.preventDefault();
-    if (!drawing || attemptsLeft <= 0) return;
+    if (!current || locked || attemptsLeft <= 0) return;
     setFeedback("");
     try {
-      const result = await api.guess(drawing.id, guess, hintsUsed);
-      setAttemptsLeft(result.attemptsLeft);
+      const result = await api.guess(current.id, guess);
+      updateCurrentProgress(result.progress, result.answer);
+      setGuess("");
       if (result.correct) {
         setFeedback(
           result.pointsAwarded != null
@@ -63,99 +133,90 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
             : result.message
         );
         onScored();
+        window.setTimeout(() => removeFromPool(current.id), 1200);
       } else {
         setFeedback(
           result.attemptsLeft > 0
             ? `${result.attemptsLeft} tipp lehetőség`
             : result.message
         );
-        if (result.attemptsLeft <= 0) {
-          window.setTimeout(() => {
-            void loadRandom();
-          }, 1200);
+        if (result.progress.status === "failed") {
+          window.setTimeout(() => removeFromPool(current.id), 1200);
         }
       }
-      setGuess("");
     } catch (err) {
       setFeedback(err instanceof Error ? err.message : "Hiba a tippelésnél.");
     }
   }
 
+  function goPrev() {
+    setFeedback("");
+    setGuess("");
+    setIndex((i) => Math.max(0, i - 1));
+  }
+
+  function goNext() {
+    setFeedback("");
+    setGuess("");
+    setIndex((i) => Math.min(pool.length - 1, i + 1));
+  }
+
+  if (loading) {
+    return (
+      <Card padding="lg">
+        <p className="text-sm text-[var(--muted)]">Betöltés…</p>
+      </Card>
+    );
+  }
+
+  if (!current) {
+    return (
+      <Card padding="lg" className="text-center">
+        <p className="text-base font-medium text-[var(--ink)]">
+          Jelenleg nincs új feladvány. Addig rajzolj.
+        </p>
+        {error ? (
+          <p className="mt-2 text-sm text-[var(--danger)]">{error}</p>
+        ) : null}
+        <Button
+          label="Frissítés"
+          variant="secondary"
+          className="mt-4"
+          onClick={() => void loadPool()}
+        />
+      </Card>
+    );
+  }
+
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--panel)] p-4 shadow-sm">
-      {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
+    <div className="flex flex-col gap-4">
+      <div className="grid gap-4 md:grid-cols-[240px_1fr]">
+        <HintPanel
+          hints={hintTexts}
+          revealed={hintsRevealed}
+          disabled={locked}
+          onReveal={(n) => void handleReveal(n)}
+        />
+        <PuzzleImageCard
+          src={current.imageDataUrl}
+          authorAlias={current.authorAlias}
+          index={index}
+          total={pool.length}
+          onPrev={goPrev}
+          onNext={goNext}
+        />
+      </div>
 
-      {drawing ? (
-        <>
-          <div className="grid gap-4 md:grid-cols-[180px_1fr]">
-            <div className="flex flex-col gap-2">
-              {([1, 2, 3] as const).map((n) => (
-                <div key={n} className="flex flex-col gap-1">
-                  <Button
-                    label={`HINT ${n}`}
-                    variant="secondary"
-                    onClick={() =>
-                      setRevealed((prev) => ({ ...prev, [n]: true }))
-                    }
-                  />
-                  {revealed[n] ? (
-                    <p className="rounded bg-stone-100 px-2 py-1 text-xs text-stone-700">
-                      {hints[n] || "—"}
-                    </p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-
-            <div className="flex min-h-48 items-center justify-center rounded-lg border border-dashed border-stone-300 bg-white p-2">
-              <img
-                src={drawing.imageDataUrl}
-                alt="Rejtett rajz"
-                className="max-h-64 max-w-full object-contain"
-              />
-            </div>
-          </div>
-
-          <p className="mt-2 text-xs text-stone-400">
-            Rajzoló: {drawing.authorAlias}
-          </p>
-
-          <form
-            className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end"
-            onSubmit={handleGuess}
-          >
-            <TextField
-              label="Ki van lerajzolva?"
-              name="guess"
-              value={guess}
-              onChange={(e) => setGuess(e.target.value)}
-              placeholder="Tippeld meg a nevet"
-              disabled={attemptsLeft <= 0}
-            />
-            <Button
-              label="Tippelek"
-              variant="primary"
-              type="submit"
-              disabled={attemptsLeft <= 0}
-            />
-            <Button
-              label="Új rajz"
-              variant="ghost"
-              onClick={() => void loadRandom()}
-            />
-          </form>
-
-          <p className="mt-2 text-sm text-stone-600">
-            {attemptsLeft} tipp lehetőség
-          </p>
-
-          {feedback ? (
-            <p className="mt-1 text-sm font-medium text-[var(--accent)]">
-              {feedback}
-            </p>
-          ) : null}
-        </>
-      ) : null}
+      <GuessCard
+        guess={guess}
+        attemptsLeft={attemptsLeft}
+        locked={locked}
+        status={status}
+        answer={current.answer}
+        feedback={feedback}
+        onGuessChange={setGuess}
+        onSubmit={(e) => void handleGuess(e)}
+      />
     </div>
   );
 }

@@ -1,4 +1,9 @@
-export type TableName = "users" | "drawings" | "guess_scores" | "draw_scores";
+export type TableName =
+  | "users"
+  | "drawings"
+  | "guess_scores"
+  | "draw_scores"
+  | "user_drawing_progress";
 
 export type FindManyOptions<T> = {
   where?: Partial<T>;

@@ -4,6 +4,7 @@ import type {
   DrawScore,
   GuessScore,
   User,
+  UserDrawingProgress,
 } from "@tipp-my-draw/shared";
 
 /** Tiny placeholder PNG (1x1 light gray) as data URL for seed drawing. */
@@ -15,10 +16,12 @@ export function createSeedData(): {
   drawings: Drawing[];
   guess_scores: GuessScore[];
   draw_scores: DrawScore[];
+  user_drawing_progress: UserDrawingProgress[];
 } {
   const belaId = uuid();
   const feriId = uuid();
   const tibiId = uuid();
+  const now = Date.now();
 
   const users: User[] = [
     { id: belaId, alias: "Bela", pass: "bela" },
@@ -47,8 +50,35 @@ export function createSeedData(): {
       hint3: "Man's best friend",
       name: "kutya",
       imageDataUrl: PLACEHOLDER_IMAGE,
+      createdAt: now - 3000,
+    },
+    {
+      id: uuid(),
+      userId: feriId,
+      hint1: "Nyávog",
+      hint2: "Karmol",
+      hint3: "Tejet iszik",
+      name: "macska",
+      imageDataUrl: PLACEHOLDER_IMAGE,
+      createdAt: now - 2000,
+    },
+    {
+      id: uuid(),
+      userId: tibiId,
+      hint1: "Madár",
+      hint2: "Csipog",
+      hint3: "Repül",
+      name: "madár",
+      imageDataUrl: PLACEHOLDER_IMAGE,
+      createdAt: now - 1000,
     },
   ];
 
-  return { users, drawings, guess_scores, draw_scores };
+  return {
+    users,
+    drawings,
+    guess_scores,
+    draw_scores,
+    user_drawing_progress: [],
+  };
 }

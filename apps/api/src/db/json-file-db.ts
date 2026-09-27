@@ -25,7 +25,14 @@ export class JsonFileMockDb implements DbClient {
     }
 
     if (fs.existsSync(filePath)) {
-      this.data = JSON.parse(fs.readFileSync(filePath, "utf-8")) as DbShape;
+      const loaded = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Partial<DbShape>;
+      this.data = structuredClone(seed);
+      for (const key of Object.keys(seed) as TableName[]) {
+        if (Array.isArray(loaded[key])) {
+          this.data[key] = loaded[key] as Record<string, unknown>[];
+        }
+      }
+      this.persist();
     } else {
       this.data = structuredClone(seed);
       this.persist();

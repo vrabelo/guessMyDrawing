@@ -11,10 +11,11 @@ type ButtonProps = {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] border-transparent",
+    "bg-[var(--accent)] text-[#0f0f10] hover:bg-[var(--accent-hover)] border-transparent shadow-sm",
   secondary:
-    "bg-white text-[var(--ink)] border-[var(--border)] hover:bg-stone-50",
-  ghost: "bg-transparent text-[var(--ink)] border-transparent hover:bg-black/5",
+    "bg-[var(--panel-elevated)] text-[var(--ink)] border-[var(--border)] hover:bg-[#2c2c30]",
+  ghost:
+    "bg-transparent text-[var(--muted)] border-transparent hover:bg-white/5 hover:text-[var(--ink)]",
 };
 
 export function Button({
@@ -34,8 +35,8 @@ export function Button({
     <button
       type={type}
       className={[
-        "inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition",
+        "disabled:cursor-not-allowed disabled:opacity-40",
         variantClass[variant],
         activeClass,
         fullWidth ? "w-full" : "",

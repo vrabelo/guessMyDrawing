@@ -12,6 +12,7 @@ export type Drawing = {
   hint3: string;
   name: string;
   imageDataUrl: string;
+  createdAt: number;
 };
 
 export type GuessScore = {
@@ -24,6 +25,18 @@ export type DrawScore = {
   id: string;
   userId: string;
   points: number;
+};
+
+export type ProgressStatus = "in_progress" | "solved" | "failed";
+
+export type UserDrawingProgress = {
+  id: string;
+  userId: string;
+  drawingId: string;
+  status: ProgressStatus;
+  attemptsUsed: number;
+  hintsRevealed: [boolean, boolean, boolean];
+  updatedAt: number;
 };
 
 export type PublicUser = {
@@ -39,6 +52,13 @@ export type PublicDrawing = {
   hint3: string;
   imageDataUrl: string;
   authorAlias: string;
+  createdAt: number;
+};
+
+export type AvailableDrawing = PublicDrawing & {
+  progress: UserDrawingProgress | null;
+  /** Only set when status is solved */
+  answer?: string;
 };
 
 export type LeaderboardEntry = {
@@ -73,7 +93,6 @@ export type CreateDrawingRequest = {
 
 export type GuessRequest = {
   guess: string;
-  hintsUsed: number;
 };
 
 export type GuessResponse = {
@@ -81,4 +100,15 @@ export type GuessResponse = {
   message: string;
   attemptsLeft: number;
   pointsAwarded: number | null;
+  progress: UserDrawingProgress;
+  answer?: string;
+};
+
+export type PatchProgressRequest = {
+  revealHint?: 1 | 2 | 3;
+};
+
+export type WsDrawingCreatedEvent = {
+  type: "drawing.created";
+  drawing: PublicDrawing;
 };

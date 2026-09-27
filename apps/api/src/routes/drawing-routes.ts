@@ -4,17 +4,46 @@ import type { AuthedRequest } from "../middleware/auth";
 
 export function createDrawingRoutes(
   drawings: DrawingService,
-  requireAuth: (req: AuthedRequest, res: import("express").Response, next: import("express").NextFunction) => void
+  requireAuth: (
+    req: AuthedRequest,
+    res: import("express").Response,
+    next: import("express").NextFunction
+  ) => void
 ): Router {
   const router = Router();
 
-  router.get("/random", requireAuth, async (_req, res) => {
-    const drawing = await drawings.getRandomPublic();
-    if (!drawing) {
-      res.status(404).json({ message: "Még nincs rajz a rendszerben." });
+  router.get("/available", requireAuth, async (req: AuthedRequest, res) => {
+    const list = await drawings.listAvailable(req.auth!.userId);
+    res.json(list);
+  });
+
+  router.get("/:id/progress", requireAuth, async (req: AuthedRequest, res) => {
+    const item = await drawings.getProgress(req.auth!.userId, req.params.id);
+    if (!item) {
+      res.status(404).json({ message: "Feladvány nem található." });
       return;
     }
-    res.json(drawing);
+    res.json(item);
+  });
+
+  router.patch("/:id/progress", requireAuth, async (req: AuthedRequest, res) => {
+    try {
+      const hint = Number(req.body?.revealHint);
+      if (hint !== 1 && hint !== 2 && hint !== 3) {
+        res.status(400).json({ message: "revealHint: 1, 2 vagy 3." });
+        return;
+      }
+      const progress = await drawings.revealHint(
+        req.auth!.userId,
+        req.params.id,
+        hint
+      );
+      res.json(progress);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Progress mentés sikertelen.";
+      res.status(400).json({ message });
+    }
   });
 
   router.post("/", requireAuth, async (req: AuthedRequest, res) => {
@@ -34,14 +63,18 @@ export function createDrawingRoutes(
   });
 
   router.post("/:id/guess", requireAuth, async (req: AuthedRequest, res) => {
-    const hintsUsed = Number(req.body?.hintsUsed ?? 0);
-    const result = await drawings.guess(
-      req.params.id,
-      req.auth!.userId,
-      String(req.body?.guess ?? ""),
-      Number.isFinite(hintsUsed) ? hintsUsed : 0
-    );
-    res.json(result);
+    try {
+      const result = await drawings.guess(
+        req.params.id,
+        req.auth!.userId,
+        String(req.body?.guess ?? "")
+      );
+      res.json(result);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Tippelés sikertelen.";
+      res.status(400).json({ message });
+    }
   });
 
   return router;

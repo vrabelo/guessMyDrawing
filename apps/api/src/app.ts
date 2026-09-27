@@ -4,6 +4,7 @@ import { createDb } from "./db";
 import { UserRepo } from "./repos/user-repo";
 import { DrawingRepo } from "./repos/drawing-repo";
 import { ScoreRepo } from "./repos/score-repo";
+import { ProgressRepo } from "./repos/progress-repo";
 import { AuthService } from "./services/auth-service";
 import { DrawingService } from "./services/drawing-service";
 import { ScoreService } from "./services/score-service";
@@ -17,9 +18,15 @@ export function createApp() {
   const users = new UserRepo(db);
   const drawings = new DrawingRepo(db);
   const scores = new ScoreRepo(db);
+  const progress = new ProgressRepo(db);
 
   const authService = new AuthService(users);
-  const drawingService = new DrawingService(drawings, users, scores);
+  const drawingService = new DrawingService(
+    drawings,
+    users,
+    scores,
+    progress
+  );
   const scoreService = new ScoreService(scores, users);
   const requireAuth = createAuthMiddleware(authService);
 
@@ -38,5 +45,5 @@ export function createApp() {
     createLeaderboardRoutes(scoreService, requireAuth)
   );
 
-  return app;
+  return { app, authService, drawingService };
 }
