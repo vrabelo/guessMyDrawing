@@ -1,84 +1,80 @@
 import type { FormEvent } from "react";
-import type { ProgressStatus } from "@tipp-my-draw/shared";
-import { Button } from "../../components/ui/Button";
-import { TextField } from "../../components/ui/TextField";
+import { LETTER_GRACE_MS } from "@tipp-my-draw/shared";
 
 type GuessCardProps = {
   guess: string;
-  wrongGuesses: string[];
   locked: boolean;
-  status: ProgressStatus | null;
-  answer?: string;
-  feedback: string;
+  elapsedMs: number;
+  letterMask: string | null;
+  potentialPoints: number;
   onGuessChange: (value: string) => void;
   onSubmit: (e: FormEvent) => void;
+  onPass: () => void;
 };
+
+function formatPoints(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(".", ",");
+}
+
+function formatCountdown(ms: number): string {
+  const s = Math.max(0, ms / 1000);
+  return s.toFixed(1).replace(".", ",");
+}
 
 export function GuessCard({
   guess,
-  wrongGuesses,
   locked,
-  status,
-  answer,
-  feedback,
+  elapsedMs,
+  letterMask,
+  potentialPoints,
   onGuessChange,
   onSubmit,
+  onPass,
 }: GuessCardProps) {
+  if (locked) return null;
+
+  const inGrace = elapsedMs < LETTER_GRACE_MS;
+  const remainingGrace = Math.max(0, LETTER_GRACE_MS - elapsedMs);
+
   return (
-    <div className="mt-2">
-      <div className="flex flex-wrap items-center gap-2">
-        {wrongGuesses.map((w, i) => (
-          <span
-            key={`${w}-${i}`}
-            className={[
-              "inline-flex h-11 max-w-[10rem] items-center truncate rounded-2xl px-4 text-sm",
-              "bg-[#3f1d1d] text-[#fca5a5] ring-1 ring-[#7f1d1d]/60",
-              "shadow-md shadow-black/30",
-            ].join(" ")}
-            title={w}
+    <div className="guess-top-bar">
+      <div className="guess-top-bar__row">
+        <form className="guess-top-bar__search" onSubmit={onSubmit}>
+          <input
+            name="guess"
+            value={guess}
+            onChange={(e) => onGuessChange(e.target.value)}
+            placeholder="Mit látsz a képen ?"
+            className="guess-faint-input min-w-0 flex-1"
+            autoComplete="off"
+          />
+          <button type="submit" className="guess-faint-btn">
+            Küldés
+          </button>
+          <button
+            type="button"
+            className="guess-faint-btn guess-faint-btn--pass"
+            onClick={onPass}
           >
-            {w}
-          </span>
-        ))}
+            Passz
+          </button>
+        </form>
 
-        {!locked ? (
-          <form className="flex flex-wrap items-end gap-2" onSubmit={onSubmit}>
-            <div className="min-w-[12rem] flex-1">
-              <TextField
-                name="guess"
-                value={guess}
-                onChange={(e) => onGuessChange(e.target.value)}
-                placeholder="Tipp…"
-                className="shadow-lg shadow-black/25"
-              />
-            </div>
-            <Button
-              label="Küldés"
-              variant="primary"
-              type="submit"
-              className="shadow-lg shadow-black/30"
-            />
-          </form>
-        ) : null}
+        <div className="guess-top-bar__feedback" aria-live="polite">
+          <p className="guess-top-bar__letter-mask" aria-label="Betűsegítség">
+            {letterMask ?? "…"}
+          </p>
+          <p className="guess-top-bar__reward">
+            <strong>{formatPoints(potentialPoints)}</strong> pont
+            {inGrace ? (
+              <span className="guess-top-bar__grace">
+                {" "}
+                · betű {formatCountdown(remainingGrace)} mp múlva
+              </span>
+            ) : null}
+          </p>
+        </div>
       </div>
-
-      {status === "solved" ? (
-        <p className="mt-3 text-sm font-medium text-[var(--accent)]">
-          Megfejtés: {answer ?? "—"}
-        </p>
-      ) : null}
-
-      {status === "failed" ? (
-        <p className="mt-3 text-sm font-medium text-[var(--danger)]">
-          Elfogyott a 3 tipp.
-        </p>
-      ) : null}
-
-      {feedback ? (
-        <p className="mt-2 text-sm font-medium text-[var(--accent)]">
-          {feedback}
-        </p>
-      ) : null}
     </div>
   );
 }

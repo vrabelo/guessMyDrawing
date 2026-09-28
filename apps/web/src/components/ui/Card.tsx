@@ -22,7 +22,7 @@ export function Card({
   return (
     <section
       className={[
-        "rounded-2xl border border-[var(--border)] bg-[var(--panel)]",
+        "game-card",
         paddingClass[padding],
         className,
       ]

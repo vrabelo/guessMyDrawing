@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import type { LeaderboardsResponse } from "@tipp-my-draw/shared";
+import type {
+  LeaderboardsResponse,
+  UserStatsResponse,
+} from "@tipp-my-draw/shared";
 import { api, clearSession, getStoredUser } from "./api/client";
 import { AuthScreen } from "./features/AuthScreen";
-import { ModeToggle, type AppMode } from "./features/ModeToggle";
+import type { AppMode } from "./features/ModeToggle";
 import { PlayPanel } from "./features/PlayPanel";
 import { DrawPanel } from "./features/DrawPanel";
-import { Leaderboards } from "./features/Leaderboards";
+import { SidePanel } from "./features/SidePanel";
 import { AppHeader } from "./features/play/AppHeader";
 
 export default function App() {
@@ -14,19 +17,25 @@ export default function App() {
   );
   const [mode, setMode] = useState<AppMode>("play");
   const [boards, setBoards] = useState<LeaderboardsResponse | null>(null);
+  const [stats, setStats] = useState<UserStatsResponse | null>(null);
 
-  const refreshBoards = useCallback(async () => {
+  const refreshSideData = useCallback(async () => {
     try {
-      const data = await api.leaderboards();
-      setBoards(data);
+      const [lb, me] = await Promise.all([
+        api.leaderboards(),
+        api.myStats(),
+      ]);
+      setBoards(lb);
+      setStats(me);
     } catch {
       setBoards(null);
+      setStats(null);
     }
   }, []);
 
   useEffect(() => {
-    if (user) void refreshBoards();
-  }, [user, refreshBoards]);
+    if (user) void refreshSideData();
+  }, [user, refreshSideData]);
 
   if (!user) {
     return (
@@ -36,29 +45,37 @@ export default function App() {
     );
   }
 
+  const gridClass =
+    mode === "play"
+      ? "grid min-h-0 flex-1 grid-cols-1 gap-5 overflow-hidden lg:grid-cols-[minmax(0,1fr)_260px]"
+      : "grid min-h-0 flex-1 grid-cols-1 overflow-hidden";
+
   return (
-    <main className="mx-auto flex h-screen max-h-screen max-w-6xl flex-col gap-3 overflow-hidden px-4 py-3">
+    <main className="mx-auto flex h-screen max-h-screen max-w-[1400px] flex-col gap-2.5 overflow-hidden px-4 py-2.5 sm:px-6">
       <AppHeader
-        alias={user.alias}
+        mode={mode}
+        onModeChange={setMode}
         onLogout={() => {
           clearSession();
           setUser(null);
         }}
       />
 
-      <ModeToggle mode={mode} onChange={setMode} />
-
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className={gridClass}>
         {mode === "play" ? (
-          <PlayPanel onScored={() => void refreshBoards()} />
+          <>
+            <PlayPanel onScored={() => void refreshSideData()} />
+            <SidePanel
+              alias={user.alias}
+              stats={stats}
+              boards={boards}
+              alignWithImage
+            />
+          </>
         ) : (
-          <div className="h-full overflow-auto pb-2">
-            <DrawPanel onSaved={() => void refreshBoards()} />
-          </div>
+          <DrawPanel onSaved={() => void refreshSideData()} />
         )}
       </div>
-
-      <Leaderboards data={boards} />
     </main>
   );
 }

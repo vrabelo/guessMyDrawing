@@ -5,8 +5,12 @@ import type {
   LeaderboardsResponse,
   LoginRequest,
   LoginResponse,
+  RegisterRequest,
+  OwnedDrawing,
   PublicDrawing,
+  UpdateDrawingRequest,
   UserDrawingProgress,
+  UserStatsResponse,
 } from "@tipp-my-draw/shared";
 
 const TOKEN_KEY = "tipp-my-draw-token";
@@ -67,28 +71,56 @@ export const api = {
     return result;
   },
 
-  registerStub(): Promise<{ message: string }> {
-    return request("/api/auth/register", { method: "POST", body: "{}" });
+  async register(body: RegisterRequest): Promise<LoginResponse> {
+    const result = await request<LoginResponse>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    saveSession(result.token, result.user);
+    return result;
   },
 
   availableDrawings(): Promise<AvailableDrawing[]> {
     return request("/api/drawings/available");
   },
 
-  createDrawing(body: CreateDrawingRequest) {
+  myDrawings(): Promise<OwnedDrawing[]> {
+    return request("/api/drawings/mine");
+  },
+
+  startDrawingView(drawingId: string): Promise<AvailableDrawing> {
+    return request(`/api/drawings/${drawingId}/start`, { method: "POST" });
+  },
+
+  postBonusAnswer(drawingId: string): Promise<{ answer: string }> {
+    return request(`/api/drawings/${drawingId}/post-bonus-answer`);
+  },
+
+  expireDrawing(drawingId: string): Promise<UserDrawingProgress> {
+    return request(`/api/drawings/${drawingId}/expire`, { method: "POST" });
+  },
+
+  createDrawing(body: CreateDrawingRequest): Promise<OwnedDrawing> {
     return request("/api/drawings", {
       method: "POST",
       body: JSON.stringify(body),
     });
   },
 
-  revealHint(
-    drawingId: string,
-    hint: 1 | 2 | 3
-  ): Promise<UserDrawingProgress> {
+  updateDrawing(
+    id: string,
+    body: UpdateDrawingRequest
+  ): Promise<OwnedDrawing> {
+    return request(`/api/drawings/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  },
+
+  revealHint(drawingId: string): Promise<UserDrawingProgress> {
     return request(`/api/drawings/${drawingId}/progress`, {
       method: "PATCH",
-      body: JSON.stringify({ revealHint: hint }),
+      body: JSON.stringify({ revealHint: 1 }),
     });
   },
 
@@ -101,6 +133,10 @@ export const api = {
 
   leaderboards(): Promise<LeaderboardsResponse> {
     return request("/api/leaderboards");
+  },
+
+  myStats(): Promise<UserStatsResponse> {
+    return request("/api/leaderboards/me");
   },
 };
 

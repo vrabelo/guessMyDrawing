@@ -1,5 +1,5 @@
 import { Router } from "express";
-import type { AuthService } from "../services/auth-service";
+import { AuthError, type AuthService } from "../services/auth-service";
 
 export function createAuthRoutes(auth: AuthService): Router {
   const router = Router();
@@ -15,10 +15,19 @@ export function createAuthRoutes(auth: AuthService): Router {
     res.json(result);
   });
 
-  router.post("/register", (_req, res) => {
-    res.status(501).json({
-      message: "Később kerül kidolgozásra.",
-    });
+  router.post("/register", async (req, res) => {
+    const alias = String(req.body?.alias ?? "");
+    const pass = String(req.body?.pass ?? "");
+    try {
+      const result = await auth.register(alias, pass);
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof AuthError) {
+        res.status(err.status).json({ message: err.message });
+        return;
+      }
+      throw err;
+    }
   });
 
   return router;

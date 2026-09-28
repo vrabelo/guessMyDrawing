@@ -1,34 +1,61 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type {
   AvailableDrawing,
   PublicDrawing,
   UserDrawingProgress,
 } from "@tipp-my-draw/shared";
+import {
+  buildLetterMask,
+  isAnswerFullyRevealed,
+  letterRevealCount,
+  potentialTipperPoints,
+} from "@tipp-my-draw/shared";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { api, createDrawingsSocket } from "../api/client";
-import { HintPanel } from "./play/HintPanel";
+import { PlayIntroCard } from "./play/PlayIntroCard";
 import { PuzzleImageCard } from "./play/PuzzleImageCard";
-import { GuessCard } from "./play/GuessCard";
+import type { ResultOverlayState } from "./play/ResultOverlay";
 
 type PlayPanelProps = {
   onScored: () => void;
 };
 
 const MAX_ATTEMPTS = 3;
+const WRONG_OVERLAY_MS = 1800;
+const EXPIRE_OVERLAY_MS = 2400;
 
-function emptyHints(): [boolean, boolean, boolean] {
-  return [false, false, false];
+function emptyHints(): [boolean] {
+  return [false];
+}
+
+function pickRandomIndex(length: number, exclude?: number): number {
+  if (length <= 0) return 0;
+  if (length === 1) return 0;
+  if (exclude == null || exclude < 0 || exclude >= length) {
+    return Math.floor(Math.random() * length);
+  }
+  let next = Math.floor(Math.random() * (length - 1));
+  if (next >= exclude) next += 1;
+  return next;
 }
 
 export function PlayPanel({ onScored }: PlayPanelProps) {
+  const [sessionStarted, setSessionStarted] = useState(false);
   const [pool, setPool] = useState<AvailableDrawing[]>([]);
   const [index, setIndex] = useState(0);
   const [error, setError] = useState("");
   const [guess, setGuess] = useState("");
   const [wrongGuesses, setWrongGuesses] = useState<string[]>([]);
-  const [feedback, setFeedback] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ResultOverlayState>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const [revealAnswer, setRevealAnswer] = useState<string | null>(null);
+  const [roundActive, setRoundActive] = useState(false);
+  const [startBusy, setStartBusy] = useState(false);
+  const wrongTimerRef = useRef<number | null>(null);
+  const fetchingAnswerRef = useRef(false);
+  const expireHandledRef = useRef(false);
 
   const loadPool = useCallback(async () => {
     setLoading(true);
@@ -36,7 +63,8 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
     try {
       const list = await api.availableDrawings();
       setPool(list);
-      setIndex((i) => (list.length === 0 ? 0 : Math.min(i, list.length - 1)));
+      setIndex(list.length === 0 ? 0 : pickRandomIndex(list.length));
+      setRoundActive(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nem sikerült betölteni.");
       setPool([]);
@@ -45,22 +73,30 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
     }
   }, []);
 
-  useEffect(() => {
+  function handleSessionStart() {
+    setSessionStarted(true);
     void loadPool();
-  }, [loadPool]);
+  }
 
   useEffect(() => {
+    if (!sessionStarted) return;
     const ws = createDrawingsSocket((drawing: PublicDrawing) => {
       setPool((prev) => {
         if (prev.some((d) => d.id === drawing.id)) return prev;
         const next: AvailableDrawing = { ...drawing, progress: null };
-        return [...prev, next];
+        const wasEmpty = prev.length === 0;
+        const updated = [...prev, next];
+        if (wasEmpty) {
+          setIndex(0);
+          setRoundActive(false);
+        }
+        return updated;
       });
     });
     return () => {
       ws?.close();
     };
-  }, []);
+  }, [sessionStarted]);
 
   const current = pool[index] ?? null;
   const currentId = current?.id;
@@ -68,28 +104,152 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
   useEffect(() => {
     setWrongGuesses([]);
     setGuess("");
-    setFeedback("");
+    setResult(null);
+    setRevealAnswer(null);
+    setRoundActive(false);
+    setStartBusy(false);
+    fetchingAnswerRef.current = false;
+    expireHandledRef.current = false;
+    if (wrongTimerRef.current != null) {
+      window.clearTimeout(wrongTimerRef.current);
+      wrongTimerRef.current = null;
+    }
   }, [currentId]);
+
+  useEffect(() => {
+    return () => {
+      if (wrongTimerRef.current != null) {
+        window.clearTimeout(wrongTimerRef.current);
+      }
+    };
+  }, []);
 
   const progress: UserDrawingProgress | null = current?.progress ?? null;
   const status = progress?.status ?? null;
   const hintsRevealed = progress?.hintsRevealed ?? emptyHints();
+  const hintRevealed = Boolean(hintsRevealed[0]);
   const attemptsUsed = progress?.attemptsUsed ?? 0;
   const attemptsLeft =
-    status === "solved" || status === "failed"
+    status === "solved" || status === "failed" || status === "expired"
       ? 0
       : MAX_ATTEMPTS - attemptsUsed;
-  const locked = status === "solved" || status === "failed";
+  const roundEnded =
+    status === "solved" ||
+    status === "failed" ||
+    status === "expired" ||
+    result?.kind === "success" ||
+    result?.kind === "failure" ||
+    result?.kind === "expired";
+  const locked = roundEnded || !roundActive;
+  const priorFailure = Boolean(progress?.priorFailure);
 
-  const hintTexts = useMemo(
-    () =>
-      ({
-        1: current?.hint1 ?? "",
-        2: current?.hint2 ?? "",
-        3: current?.hint3 ?? "",
-      }) as Record<1 | 2 | 3, string>,
-    [current]
+  async function handleStartRound() {
+    if (!current || roundActive || startBusy || roundEnded) return;
+    setStartBusy(true);
+    setError("");
+    try {
+      const item = await api.startDrawingView(current.id);
+      setPool((prev) =>
+        prev.map((d) =>
+          d.id === item.id
+            ? {
+                ...d,
+                progress: item.progress,
+                ...(item.answer != null ? { answer: item.answer } : {}),
+              }
+            : d
+        )
+      );
+      setRoundActive(true);
+      setNow(Date.now());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nem sikerült indítani.");
+    } finally {
+      setStartBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!currentId || !roundActive || locked) return;
+    const tick = window.setInterval(() => setNow(Date.now()), 200);
+    return () => window.clearInterval(tick);
+  }, [currentId, roundActive, locked]);
+
+  const elapsedMs =
+    roundActive && progress?.guessStartedAt != null
+      ? Math.max(0, now - progress.guessStartedAt)
+      : 0;
+
+  useEffect(() => {
+    if (!currentId || !roundActive || locked || revealAnswer != null) return;
+    if (fetchingAnswerRef.current) return;
+    fetchingAnswerRef.current = true;
+    void api
+      .postBonusAnswer(currentId)
+      .then((res) => {
+        setRevealAnswer(res.answer);
+      })
+      .catch(() => {
+        fetchingAnswerRef.current = false;
+      });
+  }, [currentId, roundActive, locked, revealAnswer]);
+
+  const letterSeed = `${currentId ?? ""}:${progress?.guessStartedAt ?? 0}`;
+
+  const letterMask = useMemo(() => {
+    if (!roundActive || !revealAnswer) return null;
+    return buildLetterMask(
+      revealAnswer,
+      letterRevealCount(elapsedMs),
+      letterSeed
+    );
+  }, [roundActive, revealAnswer, elapsedMs, letterSeed]);
+
+  const potentialPoints = potentialTipperPoints(
+    hintsRevealed,
+    priorFailure,
+    elapsedMs
   );
+
+  useEffect(() => {
+    if (!current || !roundActive || locked || !revealAnswer) return;
+    if (expireHandledRef.current) return;
+    if (!isAnswerFullyRevealed(revealAnswer, elapsedMs)) return;
+    expireHandledRef.current = true;
+    const answer = revealAnswer;
+    const drawingId = current.id;
+    void api
+      .expireDrawing(drawingId)
+      .then((p) => {
+        updateCurrentProgress(p, answer);
+      })
+      .catch(() => {
+        /* still remove locally */
+      })
+      .finally(() => {
+        setResult({ kind: "expired", answer });
+        window.setTimeout(() => removeFromPool(drawingId), EXPIRE_OVERLAY_MS);
+      });
+  }, [current, roundActive, locked, revealAnswer, elapsedMs]);
+
+  function dismissWrong() {
+    if (wrongTimerRef.current != null) {
+      window.clearTimeout(wrongTimerRef.current);
+      wrongTimerRef.current = null;
+    }
+    setResult((prev) => (prev?.kind === "wrong" ? null : prev));
+  }
+
+  function showWrongOverlay(submitted: string) {
+    if (wrongTimerRef.current != null) {
+      window.clearTimeout(wrongTimerRef.current);
+    }
+    setResult({ kind: "wrong", guess: submitted });
+    wrongTimerRef.current = window.setTimeout(() => {
+      setResult((prev) => (prev?.kind === "wrong" ? null : prev));
+      wrongTimerRef.current = null;
+    }, WRONG_OVERLAY_MS);
+  }
 
   function updateCurrentProgress(p: UserDrawingProgress, answer?: string) {
     setPool((prev) =>
@@ -108,21 +268,27 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
   function removeFromPool(drawingId: string) {
     setPool((prev) => {
       const next = prev.filter((d) => d.id !== drawingId);
-      setIndex((i) => {
-        if (next.length === 0) return 0;
-        return Math.min(i, next.length - 1);
-      });
+      setIndex(next.length === 0 ? 0 : pickRandomIndex(next.length));
       return next;
     });
+    setResult(null);
+    setRoundActive(false);
   }
 
-  async function handleReveal(n: 1 | 2 | 3) {
-    if (!current || locked || hintsRevealed[n - 1]) return;
+  function handlePass() {
+    if (!current || locked) return;
+    dismissWrong();
+    setGuess("");
+    removeFromPool(current.id);
+  }
+
+  async function handleReveal() {
+    if (!current || locked || hintRevealed) return;
     try {
-      const p = await api.revealHint(current.id, n);
+      const p = await api.revealHint(current.id);
       updateCurrentProgress(p);
-    } catch (err) {
-      setFeedback(err instanceof Error ? err.message : "Hint mentés hiba.");
+    } catch {
+      /* ignore */
     }
   }
 
@@ -131,105 +297,105 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
     if (!current || locked || attemptsLeft <= 0) return;
     const submitted = guess.trim();
     if (!submitted) return;
-    setFeedback("");
     try {
-      const result = await api.guess(current.id, submitted);
-      updateCurrentProgress(result.progress, result.answer);
+      const res = await api.guess(current.id, submitted);
+      updateCurrentProgress(res.progress, res.answer);
       setGuess("");
-      if (result.correct) {
-        setFeedback(
-          result.pointsAwarded != null
-            ? `Talált! ${result.pointsAwarded} -pont!`
-            : result.message
-        );
+
+      if (res.correct && res.roundComplete) {
+        dismissWrong();
+        setResult({
+          kind: "success",
+          points: res.pointsAwarded ?? 0,
+        });
         onScored();
-        window.setTimeout(() => removeFromPool(current.id), 1200);
-      } else {
+        window.setTimeout(() => removeFromPool(current.id), 2200);
+        return;
+      }
+
+      if (!res.correct) {
         setWrongGuesses((prev) => [...prev, submitted]);
-        setFeedback(
-          result.attemptsLeft > 0
-            ? `${result.attemptsLeft} tipp lehetőség`
-            : result.message
-        );
-        if (result.progress.status === "failed") {
-          window.setTimeout(() => removeFromPool(current.id), 1200);
+        if (res.roundComplete) {
+          dismissWrong();
+          setResult({ kind: "failure" });
+          onScored();
+          window.setTimeout(() => removeFromPool(current.id), 2800);
+        } else {
+          showWrongOverlay(submitted);
         }
       }
-    } catch (err) {
-      setFeedback(err instanceof Error ? err.message : "Hiba a tippelésnél.");
+    } catch {
+      /* ignore */
     }
   }
 
-  function goPrev() {
-    setFeedback("");
-    setGuess("");
-    setIndex((i) => Math.max(0, i - 1));
-  }
-
-  function goNext() {
-    setFeedback("");
-    setGuess("");
-    setIndex((i) => Math.min(pool.length - 1, i + 1));
+  if (!sessionStarted) {
+    return (
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <PlayIntroCard onStart={handleSessionStart} busy={loading} />
+      </div>
+    );
   }
 
   if (loading) {
     return (
-      <Card padding="lg">
-        <p className="text-sm text-[var(--muted)]">Betöltés…</p>
-      </Card>
+      <div className="flex min-h-0 items-center justify-center">
+        <Card padding="lg">
+          <p className="text-sm text-[var(--muted)]">Betöltés…</p>
+        </Card>
+      </div>
     );
   }
 
   if (!current) {
     return (
-      <Card padding="lg" className="text-center">
-        <p className="text-base font-medium text-[var(--ink)]">
-          Jelenleg nincs új feladvány. Addig rajzolj.
-        </p>
-        {error ? (
-          <p className="mt-2 text-sm text-[var(--danger)]">{error}</p>
-        ) : null}
-        <Button
-          label="Frissítés"
-          variant="secondary"
-          className="mt-4"
-          onClick={() => void loadPool()}
-        />
-      </Card>
+      <div className="flex min-h-0 items-center justify-center">
+        <Card padding="lg" className="max-w-md text-center">
+          <p className="text-base font-medium text-[var(--ink)]">Nincs új kép.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Addig rajzolj.</p>
+          {error ? (
+            <p className="mt-2 text-sm text-[var(--danger)]">{error}</p>
+          ) : null}
+          <Button
+            label="Frissítés"
+            variant="secondary"
+            className="mt-4"
+            onClick={() => void loadPool()}
+          />
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col justify-center gap-3">
-      <div className="flex flex-wrap items-center justify-center gap-5">
-        <PuzzleImageCard
-          src={current.imageDataUrl}
-          authorAlias={current.authorAlias}
-          index={index}
-          total={pool.length}
-          onPrev={goPrev}
-          onNext={goNext}
-        />
-        <HintPanel
-          hints={hintTexts}
-          revealed={hintsRevealed}
-          disabled={locked}
-          onReveal={(n) => void handleReveal(n)}
-        />
-      </div>
-
-      <div className="flex justify-center px-2">
-        <GuessCard
-          guess={guess}
-          wrongGuesses={wrongGuesses}
-          locked={locked}
-          status={status}
-          answer={current.answer}
-          feedback={feedback}
-          onGuessChange={setGuess}
-          onSubmit={(e) => void handleGuess(e)}
-        />
-      </div>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {error && !roundActive ? (
+        <p className="mb-2 text-center text-sm text-[var(--danger)]">{error}</p>
+      ) : null}
+      <PuzzleImageCard
+        src={current.imageDataUrl}
+        authorAlias={current.authorAlias}
+        index={index}
+        total={pool.length}
+        hint={current.hint1 ?? ""}
+        hintRevealed={hintRevealed}
+        hintsDisabled={locked}
+        onRevealHint={() => void handleReveal()}
+        guess={guess}
+        wrongGuesses={wrongGuesses}
+        guessLocked={locked}
+        awaitingStart={!roundActive && !roundEnded}
+        onStart={() => void handleStartRound()}
+        startBusy={startBusy}
+        elapsedMs={elapsedMs}
+        letterMask={letterMask}
+        potentialPoints={potentialPoints}
+        onGuessChange={setGuess}
+        onGuessSubmit={(e) => void handleGuess(e)}
+        onPass={handlePass}
+        result={result}
+        onDismissWrong={dismissWrong}
+      />
     </div>
   );
 }

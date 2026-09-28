@@ -1,38 +1,59 @@
-import { Button } from "../../components/ui/Button";
-
 type HintPanelProps = {
-  hints: Record<1 | 2 | 3, string>;
-  revealed: [boolean, boolean, boolean];
+  hint: string;
+  revealed: boolean;
   disabled?: boolean;
-  onReveal: (n: 1 | 2 | 3) => void;
+  onReveal: () => void;
+  wrongGuesses?: string[];
 };
 
 export function HintPanel({
-  hints,
+  hint,
   revealed,
   disabled = false,
   onReveal,
+  wrongGuesses = [],
 }: HintPanelProps) {
+  const label = revealed ? hint || "—" : "HINT";
+
   return (
-    <div className="flex w-40 shrink-0 flex-col justify-center gap-2.5 self-center">
-      {([1, 2, 3] as const).map((n) => {
-        const isOpen = revealed[n - 1];
-        return (
-          <Button
-            key={n}
-            label={isOpen ? hints[n] || "—" : `HINT ${n}`}
-            variant={isOpen ? "primary" : "secondary"}
-            disabled={disabled || isOpen}
-            onClick={() => onReveal(n)}
-            fullWidth
-            className={[
-              "!h-12 !rounded-2xl !px-3 !text-xs !leading-snug",
-              isOpen ? "hint-revealed !opacity-95" : "",
-            ].join(" ")}
-            title={isOpen ? hints[n] : `HINT ${n}`}
-          />
-        );
-      })}
+    <div className="hint-wrong-row">
+      <div className="hint-float-stack" aria-label="Hint">
+        {revealed ? (
+          <div
+            className="hint-morph hint-morph--open hint-revealed"
+            title={hint}
+          >
+            <span className="hint-morph__dot" aria-hidden>
+              1
+            </span>
+            <span className="hint-morph__label">{label}</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="hint-morph"
+            disabled={disabled}
+            onClick={onReveal}
+            title="HINT"
+            aria-label="Hint felfedése"
+          >
+            <span className="hint-morph__dot" aria-hidden>
+              1
+            </span>
+            <span className="hint-morph__label">{label}</span>
+          </button>
+        )}
+      </div>
+
+      {wrongGuesses.length > 0 ? (
+        <div className="hint-wrong-row__wrongs" aria-label="Rossz tippek">
+          {wrongGuesses.map((w, i) => (
+            <span key={`${w}-${i}`} className="guess-float__chip" title={w}>
+              {w}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

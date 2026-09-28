@@ -5,16 +5,22 @@ import {
   useRef,
   useState,
 } from "react";
+import { CANVAS_H, CANVAS_W } from "@tipp-my-draw/shared";
 import { PaintToolbar } from "./PaintToolbar";
 import type { PaintTool } from "./types";
 
-const W = 480;
-const H = 320;
+const W = CANVAS_W;
+const H = CANVAS_H;
 const MAX_HISTORY = 40;
 
 export type PaintCanvasHandle = {
   toDataURL: () => string;
   clear: () => void;
+  loadFromDataURL: (dataUrl: string) => Promise<void>;
+};
+
+type PaintCanvasProps = {
+  readOnly?: boolean;
 };
 
 function hexToRgba(hex: string): [number, number, number, number] {
@@ -83,10 +89,8 @@ function floodFill(
   ctx.putImageData(img, 0, 0);
 }
 
-export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
-  _props,
-  ref
-) {
+export const PaintCanvas = forwardRef<PaintCanvasHandle, PaintCanvasProps>(
+  function PaintCanvas({ readOnly = false }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
@@ -127,6 +131,12 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
     ctx.fillRect(0, 0, W, H);
   }
 
+  function resetHistory() {
+    historyRef.current = [];
+    redoRef.current = [];
+    syncHistoryFlags();
+  }
+
   useEffect(() => {
     fillWhite();
   }, []);
@@ -137,6 +147,25 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
       pushHistory();
       fillWhite();
     },
+    loadFromDataURL: (dataUrl: string) =>
+      new Promise((resolve, reject) => {
+        const ctx = getCtx();
+        const canvas = canvasRef.current;
+        if (!ctx || !canvas) {
+          reject(new Error("Canvas nem elérhető."));
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, W, H);
+          ctx.drawImage(img, 0, 0, W, H);
+          resetHistory();
+          resolve();
+        };
+        img.onerror = () => reject(new Error("Kép betöltése sikertelen."));
+        img.src = dataUrl;
+      }),
   }));
 
   function getPos(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -213,6 +242,7 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
   }
 
   function onPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (readOnly) return;
     const canvas = canvasRef.current;
     const ctx = getCtx();
     if (!canvas || !ctx) return;
@@ -258,7 +288,7 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (!drawingRef.current) return;
+    if (readOnly || !drawingRef.current) return;
     const ctx = getCtx();
     if (!ctx) return;
     const { x, y } = getPos(e);
@@ -311,6 +341,7 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
   }
 
   function undo() {
+    if (readOnly) return;
     const ctx = getCtx();
     if (!ctx || historyRef.current.length === 0) return;
     redoRef.current.push(ctx.getImageData(0, 0, W, H));
@@ -320,6 +351,7 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
   }
 
   function redo() {
+    if (readOnly) return;
     const ctx = getCtx();
     if (!ctx || redoRef.current.length === 0) return;
     historyRef.current.push(ctx.getImageData(0, 0, W, H));
@@ -329,32 +361,40 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle>(function PaintCanvas(
   }
 
   function clear() {
+    if (readOnly) return;
     pushHistory();
     fillWhite();
   }
 
   return (
-    <div>
-      <PaintToolbar
-        tool={tool}
-        color={color}
-        lineWidth={lineWidth}
-        fillShape={fillShape}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        onToolChange={setTool}
-        onColorChange={setColor}
-        onLineWidthChange={setLineWidth}
-        onFillShapeChange={setFillShape}
-        onUndo={undo}
-        onRedo={redo}
-        onClear={clear}
-      />
+    <div className="flex h-full w-full min-h-0 flex-col gap-2">
+      {!readOnly ? (
+        <PaintToolbar
+          tool={tool}
+          color={color}
+          lineWidth={lineWidth}
+          fillShape={fillShape}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onToolChange={setTool}
+          onColorChange={setColor}
+          onLineWidthChange={setLineWidth}
+          onFillShapeChange={setFillShape}
+          onUndo={undo}
+          onRedo={redo}
+          onClear={clear}
+        />
+      ) : null}
       <canvas
         ref={canvasRef}
         width={W}
         height={H}
-        className="w-full max-w-full touch-none rounded-2xl border border-[var(--border)] bg-white"
+        className={[
+          "canvas-paint touch-none bg-white",
+          readOnly ? "canvas-paint--locked" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

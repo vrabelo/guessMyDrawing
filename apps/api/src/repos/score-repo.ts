@@ -41,10 +41,11 @@ export class ScoreRepo {
   async addGuessPoints(userId: string, amount: number): Promise<GuessScore> {
     const score = await this.ensureGuessForUser(userId);
     if (amount <= 0) return score;
+    const next = Math.round((score.points + amount) * 10) / 10;
     const updated = await this.db.update<GuessScore>(
       "guess_scores",
       { id: score.id },
-      { points: score.points + amount }
+      { points: next }
     );
     return updated!;
   }

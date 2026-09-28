@@ -27,7 +27,7 @@ export function createApp() {
     scores,
     progress
   );
-  const scoreService = new ScoreService(scores, users);
+  const scoreService = new ScoreService(scores, users, drawings, progress);
   const requireAuth = createAuthMiddleware(authService);
 
   const app = express();

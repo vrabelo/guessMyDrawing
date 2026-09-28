@@ -13,10 +13,24 @@ export class DrawingRepo {
     return this.db.findFirst<Drawing>("drawings", { id });
   }
 
+  async findByUserId(userId: string): Promise<Drawing[]> {
+    const all = await this.findAll();
+    return all
+      .filter((d) => d.userId === userId)
+      .sort((a, b) => (b.updatedAt ?? b.createdAt ?? 0) - (a.updatedAt ?? a.createdAt ?? 0));
+  }
+
   async insert(input: Omit<Drawing, "id">): Promise<Drawing> {
     return this.db.insert<Drawing>("drawings", {
       id: uuid(),
       ...input,
     });
+  }
+
+  async update(
+    id: string,
+    patch: Partial<Omit<Drawing, "id" | "userId" | "createdAt">>
+  ): Promise<Drawing | null> {
+    return this.db.update<Drawing>("drawings", { id } as Partial<Drawing>, patch);
   }
 }

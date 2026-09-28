@@ -26,14 +26,27 @@ export class ProgressRepo {
     drawingId: string
   ): Promise<UserDrawingProgress> {
     const existing = await this.find(userId, drawingId);
-    if (existing) return existing;
+    if (existing) {
+      if (
+        existing.status === "in_progress" &&
+        (existing.guessStartedAt == null || existing.guessStartedAt === 0)
+      ) {
+        const updated = await this.update(existing.id, {
+          guessStartedAt: Date.now(),
+        });
+        return updated!;
+      }
+      return existing;
+    }
     return this.db.insert<UserDrawingProgress>("user_drawing_progress", {
       id: uuid(),
       userId,
       drawingId,
       status: "in_progress",
       attemptsUsed: 0,
-      hintsRevealed: [false, false, false],
+      hintsRevealed: [false],
+      priorFailure: false,
+      guessStartedAt: Date.now(),
       updatedAt: Date.now(),
     });
   }
