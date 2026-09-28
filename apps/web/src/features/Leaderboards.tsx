@@ -1,5 +1,4 @@
 import type { LeaderboardEntry, LeaderboardsResponse } from "@tipp-my-draw/shared";
-import { Card } from "../../components/ui/Card";
 
 type LeaderboardsProps = {
   data: LeaderboardsResponse | null;
@@ -13,15 +12,23 @@ function Board({
   entries: LeaderboardEntry[];
 }) {
   return (
-    <Card title={title} className="min-w-0 flex-1" padding="sm">
-      <ol className="space-y-1 text-xs">
+    <section
+      className={[
+        "min-w-0 flex-1 rounded-2xl bg-[var(--panel)] p-4",
+        "shadow-xl shadow-black/40 ring-1 ring-white/5",
+      ].join(" ")}
+    >
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+        {title}
+      </h3>
+      <ol className="space-y-1.5 text-xs">
         {entries.length === 0 ? (
           <li className="text-[var(--muted)]">Nincs adat</li>
         ) : (
           entries.map((e, i) => (
             <li
               key={e.userId}
-              className="flex justify-between gap-1 border-b border-[var(--border)] py-1 last:border-0"
+              className="flex justify-between gap-2 border-b border-white/5 py-1 last:border-0"
             >
               <span className="truncate text-[var(--ink)]">
                 {i + 1}. {e.alias}
@@ -33,13 +40,13 @@ function Board({
           ))
         )}
       </ol>
-    </Card>
+    </section>
   );
 }
 
 export function Leaderboards({ data }: LeaderboardsProps) {
   return (
-    <div className="mt-6 flex flex-row gap-3 overflow-x-auto">
+    <div className="mt-8 flex flex-row gap-4 overflow-x-auto pb-2">
       <Board title="Top 10 tippelő" entries={data?.tippers ?? []} />
       <Board title="Top 10 rajzoló" entries={data?.creators ?? []} />
       <Board title="Top 10 összesített" entries={data?.overall ?? []} />

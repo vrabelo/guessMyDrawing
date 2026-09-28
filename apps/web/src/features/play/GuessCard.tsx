@@ -1,12 +1,11 @@
 import type { FormEvent } from "react";
 import type { ProgressStatus } from "@tipp-my-draw/shared";
 import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
 import { TextField } from "../../components/ui/TextField";
 
 type GuessCardProps = {
   guess: string;
-  attemptsLeft: number;
+  wrongGuesses: string[];
   locked: boolean;
   status: ProgressStatus | null;
   answer?: string;
@@ -17,7 +16,7 @@ type GuessCardProps = {
 
 export function GuessCard({
   guess,
-  attemptsLeft,
+  wrongGuesses,
   locked,
   status,
   answer,
@@ -26,38 +25,52 @@ export function GuessCard({
   onSubmit,
 }: GuessCardProps) {
   return (
-    <Card title="Tipp" padding="md">
+    <div className="mt-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {wrongGuesses.map((w, i) => (
+          <span
+            key={`${w}-${i}`}
+            className={[
+              "inline-flex h-11 max-w-[10rem] items-center truncate rounded-2xl px-4 text-sm",
+              "bg-[#3f1d1d] text-[#fca5a5] ring-1 ring-[#7f1d1d]/60",
+              "shadow-md shadow-black/30",
+            ].join(" ")}
+            title={w}
+          >
+            {w}
+          </span>
+        ))}
+
+        {!locked ? (
+          <form className="flex flex-wrap items-end gap-2" onSubmit={onSubmit}>
+            <div className="min-w-[12rem] flex-1">
+              <TextField
+                name="guess"
+                value={guess}
+                onChange={(e) => onGuessChange(e.target.value)}
+                placeholder="Tipp…"
+                className="shadow-lg shadow-black/25"
+              />
+            </div>
+            <Button
+              label="Küldés"
+              variant="primary"
+              type="submit"
+              className="shadow-lg shadow-black/30"
+            />
+          </form>
+        ) : null}
+      </div>
+
       {status === "solved" ? (
-        <p className="text-sm font-medium text-[var(--accent)]">
+        <p className="mt-3 text-sm font-medium text-[var(--accent)]">
           Megfejtés: {answer ?? "—"}
         </p>
       ) : null}
 
       {status === "failed" ? (
-        <p className="text-sm font-medium text-[var(--danger)]">
+        <p className="mt-3 text-sm font-medium text-[var(--danger)]">
           Elfogyott a 3 tipp.
-        </p>
-      ) : null}
-
-      {!locked ? (
-        <form
-          className="flex flex-col gap-3 sm:flex-row sm:items-end"
-          onSubmit={onSubmit}
-        >
-          <TextField
-            label="Ki van lerajzolva?"
-            name="guess"
-            value={guess}
-            onChange={(e) => onGuessChange(e.target.value)}
-            placeholder="Tippeld meg a nevet"
-          />
-          <Button label="Tippelek" variant="primary" type="submit" />
-        </form>
-      ) : null}
-
-      {!locked ? (
-        <p className="mt-3 text-sm text-[var(--muted)]">
-          {attemptsLeft} tipp lehetőség
         </p>
       ) : null}
 
@@ -66,6 +79,6 @@ export function GuessCard({
           {feedback}
         </p>
       ) : null}
-    </Card>
+    </div>
   );
 }

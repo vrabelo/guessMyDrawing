@@ -26,6 +26,7 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
   const [index, setIndex] = useState(0);
   const [error, setError] = useState("");
   const [guess, setGuess] = useState("");
+  const [wrongGuesses, setWrongGuesses] = useState<string[]>([]);
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -62,6 +63,13 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
   }, []);
 
   const current = pool[index] ?? null;
+  const currentId = current?.id;
+
+  useEffect(() => {
+    setWrongGuesses([]);
+    setGuess("");
+    setFeedback("");
+  }, [currentId]);
 
   const progress: UserDrawingProgress | null = current?.progress ?? null;
   const status = progress?.status ?? null;
@@ -121,9 +129,11 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
   async function handleGuess(e: FormEvent) {
     e.preventDefault();
     if (!current || locked || attemptsLeft <= 0) return;
+    const submitted = guess.trim();
+    if (!submitted) return;
     setFeedback("");
     try {
-      const result = await api.guess(current.id, guess);
+      const result = await api.guess(current.id, submitted);
       updateCurrentProgress(result.progress, result.answer);
       setGuess("");
       if (result.correct) {
@@ -135,6 +145,7 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
         onScored();
         window.setTimeout(() => removeFromPool(current.id), 1200);
       } else {
+        setWrongGuesses((prev) => [...prev, submitted]);
         setFeedback(
           result.attemptsLeft > 0
             ? `${result.attemptsLeft} tipp lehetőség`
@@ -189,14 +200,8 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid gap-4 md:grid-cols-[240px_1fr]">
-        <HintPanel
-          hints={hintTexts}
-          revealed={hintsRevealed}
-          disabled={locked}
-          onReveal={(n) => void handleReveal(n)}
-        />
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start justify-center gap-6">
         <PuzzleImageCard
           src={current.imageDataUrl}
           authorAlias={current.authorAlias}
@@ -205,11 +210,17 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
           onPrev={goPrev}
           onNext={goNext}
         />
+        <HintPanel
+          hints={hintTexts}
+          revealed={hintsRevealed}
+          disabled={locked}
+          onReveal={(n) => void handleReveal(n)}
+        />
       </div>
 
       <GuessCard
         guess={guess}
-        attemptsLeft={attemptsLeft}
+        wrongGuesses={wrongGuesses}
         locked={locked}
         status={status}
         answer={current.answer}
