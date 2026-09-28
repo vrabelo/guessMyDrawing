@@ -1,34 +1,23 @@
 import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { ModeToggle, type AppMode } from "../ModeToggle";
 
 type AppHeaderProps = {
   alias: string;
-  mode: AppMode;
-  onModeChange: (mode: AppMode) => void;
   onLogout: () => void;
 };
 
-export function AppHeader({
-  alias,
-  mode,
-  onModeChange,
-  onLogout,
-}: AppHeaderProps) {
+export function AppHeader({ alias, onLogout }: AppHeaderProps) {
   return (
-    <Card className="mb-6" padding="md">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--ink)]">
-            Tipp my draw
-          </h1>
-          <p className="text-sm text-[var(--muted)]">Bejelentkezve: {alias}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <ModeToggle mode={mode} onChange={onModeChange} />
-          <Button label="Kijelentkezés" variant="ghost" onClick={onLogout} />
-        </div>
+    <header className="flex shrink-0 items-center justify-between gap-4 px-1 py-2">
+      <div>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--ink)] sm:text-3xl">
+          Tipp{" "}
+          <span className="bg-gradient-to-r from-[var(--accent)] to-[#5eead4] bg-clip-text text-transparent">
+            my draw
+          </span>
+        </h1>
+        <p className="text-xs text-[var(--muted)] sm:text-sm">@{alias}</p>
       </div>
-    </Card>
+      <Button label="Kijelentkezés" variant="ghost" onClick={onLogout} />
+    </header>
   );
 }

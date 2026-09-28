@@ -20,9 +20,9 @@ export function TextField({
       <input
         id={inputId}
         className={[
-          "rounded-2xl border border-[var(--border)] bg-[var(--panel-elevated)] px-4 py-2.5 text-[var(--ink)] outline-none",
+          "cursor-text rounded-2xl border border-[var(--border)] bg-[var(--panel-elevated)] px-4 py-2.5 text-[var(--ink)] outline-none",
           "placeholder:text-[var(--muted)]",
-          "focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]",
+          "focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] focus:shadow-[0_0_12px_rgba(45,212,191,0.2)]",
           className,
         ].join(" ")}
         {...rest}

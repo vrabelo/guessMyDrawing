@@ -18,12 +18,12 @@ export function PuzzleImageCard({
   onNext,
 }: PuzzleImageCardProps) {
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-2">
       <div
         className={[
-          "h-[450px] w-[450px] max-w-full overflow-hidden rounded-2xl",
-          "bg-[var(--panel-elevated)] shadow-xl shadow-black/45",
-          "ring-1 ring-white/5",
+          "h-[360px] w-[360px] max-w-[min(360px,85vw)] overflow-hidden rounded-2xl",
+          "bg-[var(--panel-elevated)] ring-1 ring-white/10",
+          "shadow-[0_0_40px_rgba(45,212,191,0.15),0_20px_40px_rgba(0,0,0,0.45)]",
         ].join(" ")}
       >
         <img
@@ -33,25 +33,25 @@ export function PuzzleImageCard({
         />
       </div>
 
-      <p className="text-xs text-[var(--muted)]">Rajzoló: {authorAlias}</p>
+      <p className="text-xs text-[var(--muted)]">@{authorAlias}</p>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button
           label="←"
           variant="secondary"
           onClick={onPrev}
           disabled={index <= 0}
-          className="!min-w-11 !rounded-full !px-0 shadow-lg shadow-black/30"
+          className="!min-w-10 !px-0 !py-2 shadow-lg shadow-black/30"
         />
-        <span className="min-w-12 text-center text-xs text-[var(--muted)]">
-          {index + 1} / {total}
+        <span className="min-w-10 text-center text-xs text-[var(--muted)]">
+          {index + 1}/{total}
         </span>
         <Button
           label="→"
           variant="secondary"
           onClick={onNext}
           disabled={index >= total - 1}
-          className="!min-w-11 !rounded-full !px-0 shadow-lg shadow-black/30"
+          className="!min-w-10 !px-0 !py-2 shadow-lg shadow-black/30"
         />
       </div>
     </div>

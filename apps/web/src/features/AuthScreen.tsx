@@ -41,9 +41,12 @@ export function AuthScreen({ onLoggedIn }: AuthScreenProps) {
   }
 
   return (
-    <div className="mx-auto mt-16 w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-6">
-      <h1 className="mb-1 text-center text-2xl font-semibold tracking-tight text-[var(--ink)]">
-        Tipp my draw
+    <div className="mx-auto w-full max-w-sm rounded-2xl bg-[var(--panel)]/90 p-6 shadow-[0_0_40px_rgba(45,212,191,0.12)] ring-1 ring-white/10 backdrop-blur-sm">
+      <h1 className="font-display mb-1 text-center text-3xl font-bold tracking-tight text-[var(--ink)]">
+        Tipp{" "}
+        <span className="bg-gradient-to-r from-[var(--accent)] to-[#5eead4] bg-clip-text text-transparent">
+          my draw
+        </span>
       </h1>
       <p className="mb-6 text-center text-sm text-[var(--muted)]">
         Rajzolj és tippelj

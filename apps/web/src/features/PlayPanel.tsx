@@ -200,8 +200,8 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-center gap-6">
+    <div className="flex h-full min-h-0 flex-col justify-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-5">
         <PuzzleImageCard
           src={current.imageDataUrl}
           authorAlias={current.authorAlias}
@@ -218,16 +218,18 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
         />
       </div>
 
-      <GuessCard
-        guess={guess}
-        wrongGuesses={wrongGuesses}
-        locked={locked}
-        status={status}
-        answer={current.answer}
-        feedback={feedback}
-        onGuessChange={setGuess}
-        onSubmit={(e) => void handleGuess(e)}
-      />
+      <div className="flex justify-center px-2">
+        <GuessCard
+          guess={guess}
+          wrongGuesses={wrongGuesses}
+          locked={locked}
+          status={status}
+          answer={current.answer}
+          feedback={feedback}
+          onGuessChange={setGuess}
+          onSubmit={(e) => void handleGuess(e)}
+        />
+      </div>
     </div>
   );
 }

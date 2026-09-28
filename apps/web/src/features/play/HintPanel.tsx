@@ -14,7 +14,7 @@ export function HintPanel({
   onReveal,
 }: HintPanelProps) {
   return (
-    <div className="flex w-44 shrink-0 flex-col justify-center gap-3">
+    <div className="flex w-40 shrink-0 flex-col justify-center gap-2.5 self-center">
       {([1, 2, 3] as const).map((n) => {
         const isOpen = revealed[n - 1];
         return (
@@ -26,8 +26,8 @@ export function HintPanel({
             onClick={() => onReveal(n)}
             fullWidth
             className={[
-              "!h-14 !rounded-2xl !px-3 !text-xs !leading-snug",
-              isOpen ? "!opacity-90" : "",
+              "!h-12 !rounded-2xl !px-3 !text-xs !leading-snug",
+              isOpen ? "hint-revealed !opacity-95" : "",
             ].join(" ")}
             title={isOpen ? hints[n] : `HINT ${n}`}
           />

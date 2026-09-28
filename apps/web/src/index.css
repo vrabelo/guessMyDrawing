@@ -1,23 +1,92 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0f0f10;
-  --panel: #1a1a1c;
-  --panel-elevated: #242428;
-  --ink: #f5f5f5;
-  --muted: #a1a1aa;
-  --border: #2e2e32;
-  --accent: #e4e4e7;
-  --accent-hover: #ffffff;
+  --bg: #0a0a0c;
+  --panel: #121216;
+  --panel-elevated: #1a1a20;
+  --ink: #f4f4f5;
+  --muted: #9ca3af;
+  --border: #27272a;
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
   --danger: #f87171;
+  --glow-cyan: rgba(45, 212, 191, 0.18);
+  --glow-magenta: rgba(232, 121, 249, 0.1);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: "Outfit", system-ui, sans-serif;
   color: var(--ink);
+  background-color: var(--bg);
+  overflow: hidden;
+}
+
+/* Atmospheric glow layer */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
   background:
-    radial-gradient(ellipse at top, #1c1c1f 0%, transparent 50%),
-    var(--bg);
+    radial-gradient(ellipse 60% 45% at 20% 15%, var(--glow-cyan), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 70%, var(--glow-magenta), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 100%, rgba(45, 212, 191, 0.08), transparent 50%);
+  animation: glowPulse 12s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hintPop {
+  from {
+    transform: scale(0.96);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a,
+label:has(input[type="checkbox"]),
+label:has(input[type="color"]),
+label:has(input[type="range"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+  cursor: text;
+}
+
+.font-display {
+  font-family: "Outfit", system-ui, sans-serif;
+}
+
+.hint-revealed {
+  animation: hintPop 0.25s ease-out;
 }
