@@ -10,20 +10,13 @@ import {
   letterRevealCount,
   potentialTipperPoints,
 } from "@tipp-my-draw/shared";
-import { Button } from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
-import { api, createDrawingsSocket } from "../api/client";
-import { PlayIntroCard } from "./play/PlayIntroCard";
-import { PuzzleImageCard } from "./play/PuzzleImageCard";
-import type { ResultOverlayState } from "./play/ResultOverlay";
-
-type PlayPanelProps = {
-  onScored: () => void;
-};
-
-const MAX_ATTEMPTS = 3;
-const WRONG_OVERLAY_MS = 1800;
-const EXPIRE_OVERLAY_MS = 2400;
+import { api, createDrawingsSocket } from "../../api/client";
+import type { ResultOverlayState } from "./ResultOverlay";
+import {
+  EXPIRE_OVERLAY_MS,
+  MAX_ATTEMPTS,
+  WRONG_OVERLAY_MS,
+} from "./constants";
 
 function emptyHints(): [boolean] {
   return [false];
@@ -40,7 +33,7 @@ function pickRandomIndex(length: number, exclude?: number): number {
   return next;
 }
 
-export function PlayPanel({ onScored }: PlayPanelProps) {
+export function usePlaySession(onScored: () => void) {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [pool, setPool] = useState<AvailableDrawing[]>([]);
   const [index, setIndex] = useState(0);
@@ -211,6 +204,30 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
     elapsedMs
   );
 
+  function updateCurrentProgress(p: UserDrawingProgress, answer?: string) {
+    setPool((prev) =>
+      prev.map((d) =>
+        d.id === p.drawingId
+          ? {
+              ...d,
+              progress: p,
+              ...(answer != null ? { answer } : {}),
+            }
+          : d
+      )
+    );
+  }
+
+  function removeFromPool(drawingId: string) {
+    setPool((prev) => {
+      const next = prev.filter((d) => d.id !== drawingId);
+      setIndex(next.length === 0 ? 0 : pickRandomIndex(next.length));
+      return next;
+    });
+    setResult(null);
+    setRoundActive(false);
+  }
+
   useEffect(() => {
     if (!current || !roundActive || locked || !revealAnswer) return;
     if (expireHandledRef.current) return;
@@ -249,30 +266,6 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
       setResult((prev) => (prev?.kind === "wrong" ? null : prev));
       wrongTimerRef.current = null;
     }, WRONG_OVERLAY_MS);
-  }
-
-  function updateCurrentProgress(p: UserDrawingProgress, answer?: string) {
-    setPool((prev) =>
-      prev.map((d) =>
-        d.id === p.drawingId
-          ? {
-              ...d,
-              progress: p,
-              ...(answer != null ? { answer } : {}),
-            }
-          : d
-      )
-    );
-  }
-
-  function removeFromPool(drawingId: string) {
-    setPool((prev) => {
-      const next = prev.filter((d) => d.id !== drawingId);
-      setIndex(next.length === 0 ? 0 : pickRandomIndex(next.length));
-      return next;
-    });
-    setResult(null);
-    setRoundActive(false);
   }
 
   function handlePass() {
@@ -329,73 +322,31 @@ export function PlayPanel({ onScored }: PlayPanelProps) {
     }
   }
 
-  if (!sessionStarted) {
-    return (
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <PlayIntroCard onStart={handleSessionStart} busy={loading} />
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex min-h-0 items-center justify-center">
-        <Card padding="lg">
-          <p className="text-sm text-[var(--muted)]">Betöltés…</p>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!current) {
-    return (
-      <div className="flex min-h-0 items-center justify-center">
-        <Card padding="lg" className="max-w-md text-center">
-          <p className="text-base font-medium text-[var(--ink)]">Nincs új kép.</p>
-          <p className="mt-2 text-sm text-[var(--muted)]">Addig rajzolj.</p>
-          {error ? (
-            <p className="mt-2 text-sm text-[var(--danger)]">{error}</p>
-          ) : null}
-          <Button
-            label="Frissítés"
-            variant="secondary"
-            className="mt-4"
-            onClick={() => void loadPool()}
-          />
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      {error && !roundActive ? (
-        <p className="mb-2 text-center text-sm text-[var(--danger)]">{error}</p>
-      ) : null}
-      <PuzzleImageCard
-        src={current.imageDataUrl}
-        authorAlias={current.authorAlias}
-        index={index}
-        total={pool.length}
-        hint={current.hint1 ?? ""}
-        hintRevealed={hintRevealed}
-        hintsDisabled={locked}
-        onRevealHint={() => void handleReveal()}
-        guess={guess}
-        wrongGuesses={wrongGuesses}
-        guessLocked={locked}
-        awaitingStart={!roundActive && !roundEnded}
-        onStart={() => void handleStartRound()}
-        startBusy={startBusy}
-        elapsedMs={elapsedMs}
-        letterMask={letterMask}
-        potentialPoints={potentialPoints}
-        onGuessChange={setGuess}
-        onGuessSubmit={(e) => void handleGuess(e)}
-        onPass={handlePass}
-        result={result}
-        onDismissWrong={dismissWrong}
-      />
-    </div>
-  );
+  return {
+    sessionStarted,
+    loading,
+    error,
+    current,
+    index,
+    poolSize: pool.length,
+    guess,
+    wrongGuesses,
+    result,
+    hintRevealed,
+    locked,
+    roundActive,
+    roundEnded,
+    startBusy,
+    elapsedMs,
+    letterMask,
+    potentialPoints,
+    handleSessionStart,
+    loadPool,
+    handleStartRound,
+    handlePass,
+    handleReveal,
+    handleGuess,
+    setGuess,
+    dismissWrong,
+  };
 }

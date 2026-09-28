@@ -6,7 +6,6 @@ import type {
   PublicDrawing,
   UpdateDrawingRequest,
   UserDrawingProgress,
-  Drawing,
 } from "@tipp-my-draw/shared";
 import type { DrawingRepo } from "../repos/drawing-repo";
 import type { UserRepo } from "../repos/user-repo";
@@ -17,12 +16,15 @@ import {
   drawerPointsForAttempt,
   MAX_GUESS_ATTEMPTS,
 } from "./guess-rules";
+import {
+  isPublished,
+  normalizeProgress,
+  toOwnedDrawing,
+  toPublicDrawing,
+  withProgress,
+} from "./drawing-mappers";
 
 type CreatedListener = (drawing: PublicDrawing) => void;
-
-function isPublished(d: Drawing): boolean {
-  return d.published !== false;
-}
 
 export class DrawingService {
   private readonly createdListeners: CreatedListener[] = [];
@@ -38,47 +40,16 @@ export class DrawingService {
     this.createdListeners.push(listener);
   }
 
-  private async toPublic(drawing: Drawing): Promise<PublicDrawing> {
-    const author = await this.users.findById(drawing.userId);
-    return {
-      id: drawing.id,
-      uploaderId: drawing.userId,
-      theme: drawing.theme?.trim() || "",
-      hint1: drawing.hint1,
-      hint2: drawing.hint2,
-      hint3: drawing.hint3,
-      imageDataUrl: drawing.imageDataUrl,
-      authorAlias: author?.alias ?? "ismeretlen",
-      createdAt: drawing.createdAt ?? 0,
-    };
+  private toPublic(drawing: Parameters<typeof toPublicDrawing>[0]) {
+    return toPublicDrawing(drawing, this.users);
   }
 
-  private toOwned(drawing: Drawing): OwnedDrawing {
-    return {
-      id: drawing.id,
-      theme: drawing.theme?.trim() || "",
-      hint1: drawing.hint1,
-      hint2: drawing.hint2,
-      hint3: drawing.hint3,
-      name: drawing.name,
-      imageDataUrl: drawing.imageDataUrl,
-      published: isPublished(drawing),
-      createdAt: drawing.createdAt ?? 0,
-      updatedAt: drawing.updatedAt ?? drawing.createdAt ?? 0,
-    };
+  private toOwned(drawing: Parameters<typeof toOwnedDrawing>[0]) {
+    return toOwnedDrawing(drawing);
   }
 
-  private withProgress(
-    pub: PublicDrawing,
-    progress: UserDrawingProgress | null,
-    answer?: string
-  ): AvailableDrawing {
-    return {
-      ...pub,
-      progress,
-      ...(answer != null ? { answer } : {}),
-    };
-  }
+  private withProgress = withProgress;
+  private normalizeProgress = normalizeProgress;
 
   private async reopenFailedForRetry(
     prog: UserDrawingProgress
@@ -92,17 +63,6 @@ export class DrawingService {
       guessStartedAt: Date.now(),
     });
     return updated!;
-  }
-
-  private normalizeProgress(p: UserDrawingProgress): UserDrawingProgress {
-    const raw = p.hintsRevealed as boolean[] | undefined;
-    const anyHint = Array.isArray(raw) ? raw.some(Boolean) : false;
-    return {
-      ...p,
-      priorFailure: Boolean(p.priorFailure),
-      guessStartedAt: p.guessStartedAt ?? null,
-      hintsRevealed: [anyHint],
-    };
   }
 
   /** Start / resume the guess timer when tipper clicks Mehet. */

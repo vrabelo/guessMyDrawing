@@ -1,0 +1,85 @@
+.draw-screen {
+  grid-column: 1 / -1;
+  display: grid;
+  min-height: 0;
+  min-width: 0;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .draw-screen {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+  }
+}
+
+.draw-screen__main {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.draw-screen__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-inline: 0.125rem;
+}
+
+.draw-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.draw-screen__status {
+  margin-bottom: 0.5rem;
+  padding-inline: 0.125rem;
+}
+
+.draw-screen__recommend {
+  margin-bottom: 0.5rem;
+}
+
+.draw-screen__locked-note {
+  margin-bottom: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-strong);
+}
+
+.draw-screen__canvas {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  padding: 0.5rem;
+}
+
+.draw-screen__error {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--danger);
+}
+
+.draw-screen__side {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.draw-workspace {
+  height: 100%;
+}

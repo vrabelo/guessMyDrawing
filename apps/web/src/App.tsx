@@ -4,12 +4,13 @@ import type {
   UserStatsResponse,
 } from "@tipp-my-draw/shared";
 import { api, clearSession, getStoredUser } from "./api/client";
-import { AuthScreen } from "./features/AuthScreen";
-import type { AppMode } from "./features/ModeToggle";
-import { PlayPanel } from "./features/PlayPanel";
-import { DrawPanel } from "./features/DrawPanel";
-import { SidePanel } from "./features/SidePanel";
-import { AppHeader } from "./features/play/AppHeader";
+import { AuthScreen } from "./screens/AuthScreen";
+import { PlayScreen } from "./screens/PlayScreen";
+import { DrawScreen } from "./screens/DrawScreen";
+import type { AppMode } from "./components/shell/ModeToggle";
+import { SidePanel } from "./components/shell/SidePanel";
+import { AppHeader } from "./components/shell/AppHeader";
+import "./components/shell/app-shell.css";
 
 export default function App() {
   const [user, setUser] = useState<{ id: string; alias: string } | null>(() =>
@@ -39,7 +40,7 @@ export default function App() {
 
   if (!user) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-5xl items-center px-4 py-6">
+      <main className="auth-screen-main">
         <AuthScreen onLoggedIn={setUser} />
       </main>
     );
@@ -47,11 +48,11 @@ export default function App() {
 
   const gridClass =
     mode === "play"
-      ? "grid min-h-0 flex-1 grid-cols-1 gap-5 overflow-hidden lg:grid-cols-[minmax(0,1fr)_260px]"
-      : "grid min-h-0 flex-1 grid-cols-1 overflow-hidden";
+      ? "app-shell__grid app-shell__grid--play"
+      : "app-shell__grid app-shell__grid--draw";
 
   return (
-    <main className="mx-auto flex h-screen max-h-screen max-w-[1400px] flex-col gap-2.5 overflow-hidden px-4 py-2.5 sm:px-6">
+    <main className="app-shell">
       <AppHeader
         mode={mode}
         onModeChange={setMode}
@@ -64,7 +65,7 @@ export default function App() {
       <div className={gridClass}>
         {mode === "play" ? (
           <>
-            <PlayPanel onScored={() => void refreshSideData()} />
+            <PlayScreen onScored={() => void refreshSideData()} />
             <SidePanel
               alias={user.alias}
               stats={stats}
@@ -73,7 +74,7 @@ export default function App() {
             />
           </>
         ) : (
-          <DrawPanel onSaved={() => void refreshSideData()} />
+          <DrawScreen onSaved={() => void refreshSideData()} />
         )}
       </div>
     </main>

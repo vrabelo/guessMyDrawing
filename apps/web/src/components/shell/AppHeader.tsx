@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { LogOut } from "lucide-react";
-import { ModeToggle, type AppMode } from "../ModeToggle";
+import { ModeToggle, type AppMode } from "./ModeToggle";
 
 type AppHeaderProps = {
   mode: AppMode;

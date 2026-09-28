@@ -1,6 +1,6 @@
 import type { LeaderboardsResponse, UserStatsResponse } from "@tipp-my-draw/shared";
-import { UserStatsCard } from "./play/UserStatsCard";
-import { TabbedLeaderboards } from "./play/TabbedLeaderboards";
+import { UserStatsCard } from "./UserStatsCard";
+import { TabbedLeaderboards } from "./TabbedLeaderboards";
 
 type SidePanelProps = {
   alias: string;

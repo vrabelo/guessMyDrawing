@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import type { AppMode } from "../ModeToggle.types";
+import type { AppMode } from "../shell/ModeToggle.types";
 
 type GameRulesBannerProps = {
   mode: AppMode;

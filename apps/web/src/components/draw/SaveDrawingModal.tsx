@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Button } from "../../components/ui/Button";
-import { TextField } from "../../components/ui/TextField";
+import { Button } from "../ui/Button";
+import { TextField } from "../ui/TextField";
 
 export type SaveDrawingMeta = {
   theme: string;

@@ -4,7 +4,7 @@ import { GuessCard } from "./GuessCard";
 import { PlaySideRail } from "./PlaySideRail";
 import { ResultOverlay, type ResultOverlayState } from "./ResultOverlay";
 
-type PuzzleImageCardProps = {
+type PuzzleBoardProps = {
   src: string;
   authorAlias: string;
   index: number;
@@ -31,7 +31,7 @@ type PuzzleImageCardProps = {
   footer?: ReactNode;
 };
 
-export function PuzzleImageCard({
+export function PuzzleBoard({
   src,
   authorAlias,
   index,
@@ -55,7 +55,7 @@ export function PuzzleImageCard({
   result,
   onDismissWrong,
   footer,
-}: PuzzleImageCardProps) {
+}: PuzzleBoardProps) {
   const roundOver =
     result?.kind === "success" ||
     result?.kind === "failure" ||
