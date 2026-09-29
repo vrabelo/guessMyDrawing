@@ -8,7 +8,7 @@ type HomeScreenProps = {
 
 export function HomeScreen({ onChoosePlay, onChooseDraw }: HomeScreenProps) {
   return (
-    <div className="home-screen play-screen play-screen--center">
+    <div className="home-screen">
       <div className="game-card max-h-full w-full max-w-2xl overflow-y-auto p-6 sm:p-8">
         <h2 className="mb-3 text-xl font-semibold text-[var(--ink)] sm:text-2xl">
           Hogyan működik a játék?

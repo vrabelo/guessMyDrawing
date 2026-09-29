@@ -30,7 +30,7 @@ export function MyDrawingsPanel({
     : drawings;
 
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+    <aside className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col gap-3 overflow-hidden">
       <div className="game-card flex shrink-0 flex-col gap-3 px-4 py-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="game-card-title mb-0">Saját rajzaim</h2>

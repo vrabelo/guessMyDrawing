@@ -2,12 +2,14 @@ import { Button } from "../ui/Button";
 
 type DrawStartModalProps = {
   open: boolean;
+  themeLabel: string;
   busy?: boolean;
   onStart: () => void;
 };
 
 export function DrawStartModal({
   open,
+  themeLabel,
   busy = false,
   onStart,
 }: DrawStartModalProps) {
@@ -15,23 +17,26 @@ export function DrawStartModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="draw-start-overlay"
       role="dialog"
       aria-modal="true"
       aria-labelledby="draw-start-title"
     >
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--panel-solid)] p-5 shadow-xl">
-        <h2
-          id="draw-start-title"
-          className="mb-3 text-lg font-semibold text-[var(--ink)]"
-        >
-          Rajzolás indítása
+      <div className="draw-start-overlay__card">
+        <h2 id="draw-start-title" className="draw-start-overlay__title">
+          Válaszd ki a rajzolni kívánt témát.
         </h2>
-        <p className="mb-5 text-sm leading-relaxed text-[var(--muted-strong)]">
-          Ha készen állsz indítsd a rajzolást a gombbal.
+        <p className="draw-start-overlay__theme">
+          Jelenlegi téma: &ldquo;{themeLabel}&rdquo;
+        </p>
+        <p className="draw-start-overlay__text">
+          Ha készen állsz nyomd meg a gombot.
+        </p>
+        <p className="draw-start-overlay__text draw-start-overlay__text--last">
+          Két perced lesz megrajzolni.
         </p>
         <Button
-          label="Indítás"
+          label="Indulhat"
           variant="primary"
           fullWidth
           disabled={busy}

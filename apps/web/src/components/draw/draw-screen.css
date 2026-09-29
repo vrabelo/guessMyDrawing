@@ -1,25 +1,45 @@
 .draw-screen {
+  --game-col-gap: 1.25rem;
   grid-column: 1 / -1;
   display: grid;
+  width: 100%;
+  flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
   grid-template-columns: 1fr;
-  gap: 0.75rem;
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--game-col-gap);
+  align-items: stretch;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
+/* Fixed 70/30 (main | side); must stay display:grid — do not override with flex */
 @media (min-width: 1024px) {
   .draw-screen {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
   }
+}
+
+/* Same element may also have .draw-workspace — win over .draw-workspace { display:flex } */
+.draw-workspace.draw-screen {
+  display: grid;
+}
+
+.draw-screen > * {
+  min-width: 0;
+  min-height: 0;
 }
 
 .draw-screen__main {
   display: flex;
+  width: 100%;
+  height: 100%;
   min-height: 0;
   min-width: 0;
   flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .draw-screen__toolbar {
@@ -28,6 +48,7 @@
   align-items: center;
   gap: 0.5rem 0.75rem;
   margin-bottom: 0.25rem;
+  /* Match canvas stage horizontal inset so ModeToggle sits on board left edge */
   padding-inline: 0.5rem;
   width: 100%;
   box-sizing: border-box;
@@ -47,7 +68,7 @@
   padding-inline: 0.25rem;
 }
 
-/* Fixed size: width from "Szabad rajz", height matches Mentés / Button */
+/* Fixed size buttons matching Mentés / Button height */
 .draw-toolbar {
   --draw-btn-h: 2.5rem;
   --draw-btn-w: 8.25rem;
@@ -174,9 +195,65 @@
 
 .draw-screen__canvas {
   position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
-  flex: 1;
+  flex: 1 1 auto;
   padding: 0.5rem;
+  align-self: stretch;
+}
+
+.draw-start-overlay {
+  position: absolute;
+  inset: 0.5rem;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.draw-start-overlay__card {
+  width: 100%;
+  max-width: 22rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  padding: 1.25rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.draw-start-overlay__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.draw-start-overlay__theme {
+  margin: 0 0 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1.35;
+}
+
+.draw-start-overlay__text {
+  margin: 0 0 0.4rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted-strong);
+}
+
+.draw-start-overlay__text--last {
+  margin-bottom: 1.15rem;
 }
 
 .draw-screen__error {
@@ -187,15 +264,43 @@
 
 .draw-screen__side {
   display: flex;
+  box-sizing: border-box;
+  width: 100%;
   height: 100%;
   min-height: 0;
-  width: 100%;
+  min-width: 0;
   flex-direction: column;
+  align-self: stretch;
   overflow: hidden;
 }
 
+.draw-screen__side > * {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
 .draw-workspace {
+  /* Sizing only when used as wrapper. Never set display:flex here if
+     .draw-screen is on the same node — that would kill the 70/30 grid. */
+  box-sizing: border-box;
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   height: 100%;
+}
+
+.draw-workspace:not(.draw-screen) {
+  display: flex;
+}
+
+.draw-workspace:not(.draw-screen) > .draw-screen {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .my-drawings-list {

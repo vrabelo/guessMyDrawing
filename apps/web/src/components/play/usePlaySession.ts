@@ -52,6 +52,7 @@ export function usePlaySession(onScored: () => void) {
   const fetchingAnswerRef = useRef(false);
   const expireHandledRef = useRef(false);
   const startRoundRef = useRef<() => Promise<void>>(async () => {});
+  const pendingPrestartRef = useRef(false);
 
   const loadPool = useCallback(async () => {
     setLoading(true);
@@ -102,12 +103,17 @@ export function usePlaySession(onScored: () => void) {
     setRevealAnswer(null);
     setRoundActive(false);
     setStartBusy(false);
-    setPrestartLeft(null);
     fetchingAnswerRef.current = false;
     expireHandledRef.current = false;
     if (wrongTimerRef.current != null) {
       window.clearTimeout(wrongTimerRef.current);
       wrongTimerRef.current = null;
+    }
+    if (pendingPrestartRef.current && currentId) {
+      pendingPrestartRef.current = false;
+      setPrestartLeft(PRESTART_SECONDS);
+    } else {
+      setPrestartLeft(null);
     }
   }, [currentId]);
 
@@ -153,6 +159,42 @@ export function usePlaySession(onScored: () => void) {
   function handleMehet() {
     if (!current || roundActive || roundEnded || startBusy) return;
     setPrestartLeft(PRESTART_SECONDS);
+  }
+
+  /** Load pool if needed, then start prestart when a drawing is available. */
+  async function handleIndulhat() {
+    if (roundActive || roundEnded || startBusy || prestartLeft != null) return;
+
+    if (current && hasRequestedImage) {
+      setPrestartLeft(PRESTART_SECONDS);
+      return;
+    }
+
+    pendingPrestartRef.current = true;
+    setLoading(true);
+    setError("");
+    try {
+      const list = await api.availableDrawings();
+      setPool(list);
+      setHasRequestedImage(true);
+      setRoundActive(false);
+      if (list.length === 0) {
+        pendingPrestartRef.current = false;
+        setIndex(0);
+        setPrestartLeft(null);
+        return;
+      }
+      setIndex(pickRandomIndex(list.length));
+      // prestart applied in currentId effect via pendingPrestartRef
+    } catch (err) {
+      pendingPrestartRef.current = false;
+      setError(err instanceof Error ? err.message : "Nem sikerült betölteni.");
+      setPool([]);
+      setHasRequestedImage(true);
+      setPrestartLeft(null);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleStartRound() {
@@ -382,6 +424,7 @@ export function usePlaySession(onScored: () => void) {
     loadPool,
     handleRequestImage,
     handleMehet,
+    handleIndulhat,
     handlePass,
     handleReveal,
     handleGuess,

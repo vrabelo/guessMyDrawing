@@ -18,11 +18,8 @@ type DrawToolbarProps = {
   modeDisabled?: boolean;
   busy?: boolean;
   mustSave?: boolean;
-  published?: boolean;
-  canSave?: boolean;
   onNewDrawing: () => void;
   onThemePickChange: (pick: ThemePick) => void;
-  onSave: () => void;
 };
 
 export function DrawToolbar({
@@ -30,11 +27,8 @@ export function DrawToolbar({
   modeDisabled = false,
   busy = false,
   mustSave = false,
-  published = false,
-  canSave = false,
   onNewDrawing,
   onThemePickChange,
-  onSave,
 }: DrawToolbarProps) {
   return (
     <div className="draw-toolbar" role="toolbar" aria-label="Rajzolás">
@@ -66,14 +60,6 @@ export function DrawToolbar({
           </option>
         ))}
       </select>
-      <button
-        type="button"
-        className="draw-toolbar__btn draw-toolbar__btn--primary"
-        disabled={busy || published || !canSave}
-        onClick={onSave}
-      >
-        Mentés
-      </button>
     </div>
   );
 }

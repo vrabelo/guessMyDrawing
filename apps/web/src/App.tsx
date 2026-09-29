@@ -9,7 +9,6 @@ import { HomeScreen } from "./screens/HomeScreen";
 import { PlayScreen } from "./screens/PlayScreen";
 import { DrawScreen } from "./screens/DrawScreen";
 import type { AppMode } from "./components/shell/ModeToggle";
-import { SidePanel } from "./components/shell/SidePanel";
 import { AppHeader } from "./components/shell/AppHeader";
 import "./components/shell/app-shell.css";
 
@@ -46,6 +45,11 @@ export default function App() {
     if (view === "draw") discardDrawRef.current();
   }
 
+  function handleModeChange(mode: AppMode) {
+    if (view === "draw" && mode !== "draw") discardDrawRef.current();
+    setView(mode);
+  }
+
   if (!user) {
     return (
       <main className="auth-screen-main">
@@ -55,11 +59,9 @@ export default function App() {
   }
 
   const gridClass =
-    view === "play"
-      ? "app-shell__grid app-shell__grid--play"
-      : view === "draw"
-        ? "app-shell__grid app-shell__grid--draw"
-        : "app-shell__grid app-shell__grid--home";
+    view === "home"
+      ? "app-shell__grid app-shell__grid--home"
+      : "app-shell__grid app-shell__grid--game";
 
   return (
     <main className="app-shell">
@@ -83,22 +85,17 @@ export default function App() {
             onChooseDraw={() => setView("draw")}
           />
         ) : view === "play" ? (
-          <>
-            <PlayScreen
-              onScored={() => void refreshSideData()}
-              onModeChange={setView}
-            />
-            <SidePanel
-              alias={user.alias}
-              stats={stats}
-              boards={boards}
-              alignWithImage
-            />
-          </>
+          <PlayScreen
+            onScored={() => void refreshSideData()}
+            onModeChange={handleModeChange}
+            alias={user.alias}
+            stats={stats}
+            boards={boards}
+          />
         ) : (
           <DrawScreen
             onSaved={() => void refreshSideData()}
-            onModeChange={setView}
+            onModeChange={handleModeChange}
             onBindDiscard={(fn) => {
               discardDrawRef.current = fn;
             }}

@@ -38,6 +38,9 @@ export function DrawScreen({
     : "";
 
   const publishedOnly = draw.mine.filter((d) => d.published);
+  const themeDisplay = draw.selected?.published
+    ? draw.meta.name.trim() || "…"
+    : draw.themeLabel;
 
   return (
     <div className="draw-workspace draw-screen">
@@ -51,9 +54,7 @@ export function DrawScreen({
             }}
           />
           <p className="draw-screen__theme-center" aria-live="polite">
-            {draw.selected?.published
-              ? draw.meta.name.trim() || "…"
-              : draw.themeLabel}
+            {themeDisplay}
           </p>
           <DrawToolbar
             themePick={draw.themePick}
@@ -62,13 +63,8 @@ export function DrawScreen({
             }
             busy={draw.busy}
             mustSave={draw.mustSave}
-            published={Boolean(draw.selected?.published)}
-            canSave={
-              (draw.timerActive || draw.mustSave) && !draw.selected?.published
-            }
             onNewDrawing={draw.startNew}
             onThemePickChange={draw.setThemePickAndRoll}
-            onSave={draw.openSaveModal}
           />
         </div>
 
@@ -99,6 +95,12 @@ export function DrawScreen({
             />
           ) : null}
           <PaintCanvas ref={draw.paintRef} readOnly={draw.readOnly} />
+          <DrawStartModal
+            open={draw.showStartModal}
+            themeLabel={themeDisplay}
+            busy={draw.busy}
+            onStart={draw.startClock}
+          />
         </div>
 
         {draw.error && !draw.modalOpen ? (
@@ -121,12 +123,6 @@ export function DrawScreen({
       <DrawIntroModal
         open={draw.introOpen}
         onConfirm={(dontShowAgain) => draw.dismissIntro(dontShowAgain)}
-      />
-
-      <DrawStartModal
-        open={draw.showStartModal}
-        busy={draw.busy}
-        onStart={draw.startClock}
       />
 
       <SaveDrawingModal

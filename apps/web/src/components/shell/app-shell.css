@@ -24,27 +24,30 @@
   overflow: hidden;
 }
 
-.app-shell__grid--play {
-  gap: 1.25rem;
+/* Shared play + draw shell: screen component owns inner columns */
+.app-shell__grid--game {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 
-@media (min-width: 1024px) {
-  .app-shell__grid--play {
-    grid-template-columns: minmax(0, 1fr) 260px;
-  }
+.app-shell__grid--game > * {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .app-shell__grid--home {
   display: flex;
+  width: 100%;
   min-height: 0;
   flex: 1;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-}
-
-.app-shell__grid--draw {
-  /* draw screen manages its own columns */
-}
-
-.side-panel--align-image {
-  margin-top: calc(var(--theme-row-h) + 0.375rem);
 }
