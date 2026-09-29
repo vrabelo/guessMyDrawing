@@ -9,6 +9,25 @@ import { api } from "../../api/client";
 import type { PaintCanvasHandle } from "../paint/PaintCanvas";
 import type { SaveDrawingMeta } from "./SaveDrawingModal";
 import type { DrawMode } from "./DrawModeToggle";
+import type { ThemePick } from "./DrawToolbar";
+
+const DRAW_INTRO_HIDE_KEY = "tipp-my-draw-hide-draw-intro";
+
+function shouldShowDrawIntro(): boolean {
+  try {
+    return localStorage.getItem(DRAW_INTRO_HIDE_KEY) !== "1";
+  } catch {
+    return true;
+  }
+}
+
+function persistHideDrawIntro(): void {
+  try {
+    localStorage.setItem(DRAW_INTRO_HIDE_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
 
 const emptyMeta = (): SaveDrawingMeta => ({
   theme: "",
@@ -37,6 +56,13 @@ function guidedMeta(category?: ThemeCategoryId): {
   };
 }
 
+function guidedMetaForPick(pick: ThemePick): {
+  meta: SaveDrawingMeta;
+  category: ThemeCategoryId;
+} {
+  return pick === "auto" ? guidedMeta() : guidedMeta(pick);
+}
+
 export function useDrawSession(onSaved: () => void) {
   const paintRef = useRef<PaintCanvasHandle>(null);
   const [mine, setMine] = useState<OwnedDrawing[]>([]);
@@ -44,32 +70,36 @@ export function useDrawSession(onSaved: () => void) {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawMode, setDrawMode] = useState<DrawMode>("guided");
+  const [themePick, setThemePick] = useState<ThemePick>("auto");
   const [promptLocked, setPromptLocked] = useState(true);
-  const initialGuided = useRef(guidedMeta()).current;
+  const initialGuided = useRef(guidedMetaForPick("auto")).current;
   const [meta, setMeta] = useState<SaveDrawingMeta>(initialGuided.meta);
   const [activeCategory, setActiveCategory] = useState<ThemeCategoryId>(
     initialGuided.category
   );
   const [modalOpen, setModalOpen] = useState(false);
+  const [introOpen, setIntroOpen] = useState(() => shouldShowDrawIntro());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [statusMsg, setStatusMsg] = useState("");
-  const [drawStartedAt, setDrawStartedAt] = useState<number | null>(() =>
-    Date.now()
-  );
+  const [drawStartedAt, setDrawStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [timeExpired, setTimeExpired] = useState(false);
   const forcedModalOpened = useRef(false);
 
   const selected = mine.find((d) => d.id === selectedId) ?? null;
-  const readOnly = Boolean(selected?.published) || timeExpired;
-  const timerActive = drawStartedAt != null && !selected?.published;
+  const clockRunning = drawStartedAt != null && !selected?.published;
+  const readOnly =
+    Boolean(selected?.published) || timeExpired || !clockRunning;
+  const timerActive = clockRunning;
   const remainingMs = timerActive
     ? Math.max(0, DRAW_TIME_LIMIT_MS - (now - drawStartedAt))
     : 0;
-  const showRecommendBar =
-    drawMode === "guided" && !selected?.published && !selectedId;
   const mustSave = timeExpired && !selected?.published;
+  const showStartClock =
+    !introOpen &&
+    !selected?.published &&
+    drawStartedAt == null &&
+    !mustSave;
 
   const refreshMine = useCallback(async () => {
     setLoadingList(true);
@@ -104,45 +134,74 @@ export function useDrawSession(onSaved: () => void) {
     }
   }, [timerActive, timeExpired, remainingMs]);
 
-  function applyGuidedPrompt(category?: ThemeCategoryId) {
-    if (mustSave) return;
-    const next = guidedMeta(category);
+  function setThemePickAndRoll(pick: ThemePick) {
+    if (mustSave || busy) return;
+    setThemePick(pick);
+    setDrawMode("guided");
+    const next = guidedMetaForPick(pick);
     setMeta(next.meta);
     setActiveCategory(next.category);
     setPromptLocked(true);
-    setStatusMsg("");
   }
 
-  function startNew(mode: DrawMode = drawMode) {
-    if (mustSave) return;
+  function resetToNewDrawing(mode: DrawMode = drawMode) {
     setSelectedId(null);
     setError("");
     setDrawMode(mode);
     setTimeExpired(false);
     forcedModalOpened.current = false;
-    setDrawStartedAt(Date.now());
+    setDrawStartedAt(null);
     setNow(Date.now());
+    setModalOpen(false);
     if (mode === "guided") {
-      const next = guidedMeta();
+      const next = guidedMetaForPick(themePick);
       setMeta(next.meta);
       setActiveCategory(next.category);
       setPromptLocked(true);
-      setStatusMsg("");
     } else {
       setPromptLocked(false);
       setMeta(emptyMeta());
-      setStatusMsg("Szabad rajz — bármit megrajzolhatsz.");
     }
     paintRef.current?.clear();
   }
 
+  function startNew(mode: DrawMode = drawMode) {
+    if (mustSave) return;
+    resetToNewDrawing(mode);
+  }
+
+  function startFreeMode() {
+    if (selected?.published || busy || mustSave) return;
+    if (selectedId) {
+      setDrawMode("free");
+      return;
+    }
+    if (drawStartedAt != null && !timeExpired) return;
+    resetToNewDrawing("free");
+  }
+
+  function startClock() {
+    if (selected?.published || mustSave || busy) return;
+    if (drawStartedAt != null) return;
+    setTimeExpired(false);
+    forcedModalOpened.current = false;
+    setDrawStartedAt(Date.now());
+    setNow(Date.now());
+  }
+
+  function dismissIntro(dontShowAgain = false) {
+    if (dontShowAgain) persistHideDrawIntro();
+    setIntroOpen(false);
+  }
+
   function switchMode(mode: DrawMode) {
-    if (readOnly || busy || mustSave) return;
+    if (selected?.published || busy || mustSave) return;
     if (selectedId) {
       setDrawMode(mode);
       return;
     }
-    startNew(mode);
+    if (drawStartedAt != null && !timeExpired) return;
+    resetToNewDrawing(mode);
   }
 
   async function loadDrawing(drawing: OwnedDrawing) {
@@ -153,6 +212,7 @@ export function useDrawSession(onSaved: () => void) {
     setTimeExpired(false);
     forcedModalOpened.current = false;
     setDrawStartedAt(null);
+    setIntroOpen(false);
     setMeta({
       theme: drawing.theme,
       hint1: drawing.hint1,
@@ -161,11 +221,6 @@ export function useDrawSession(onSaved: () => void) {
       name: drawing.name,
     });
     setError("");
-    setStatusMsg(
-      drawing.published
-        ? "Publikált rajz — csak megtekintés, szerkesztés nem engedélyezett."
-        : "Vázlat betöltve — szerkeszthető."
-    );
     try {
       await paintRef.current?.loadFromDataURL(drawing.imageDataUrl);
     } catch (err) {
@@ -189,11 +244,6 @@ export function useDrawSession(onSaved: () => void) {
       setTimeExpired(false);
       forcedModalOpened.current = false;
       setDrawStartedAt(null);
-      setStatusMsg(
-        saved.published
-          ? "Publikálva — a rajz zárolva, Játszom módban elérhető."
-          : "Vázlat mentve."
-      );
       await refreshMine();
       onSaved();
     } catch (err) {
@@ -201,6 +251,11 @@ export function useDrawSession(onSaved: () => void) {
     } finally {
       setBusy(false);
     }
+  }
+
+  function discardDrawing() {
+    if (busy) return;
+    resetToNewDrawing(drawMode);
   }
 
   function openSaveModal() {
@@ -224,24 +279,29 @@ export function useDrawSession(onSaved: () => void) {
     selectedId,
     selected,
     drawMode,
+    themePick,
     promptLocked,
     meta,
     activeCategory,
     modalOpen,
+    introOpen,
     busy,
     error,
-    statusMsg,
     timeExpired,
     readOnly,
     timerActive,
     remainingMs,
-    showRecommendBar,
     mustSave,
-    applyGuidedPrompt,
+    showStartClock,
+    setThemePickAndRoll,
     startNew,
+    startFreeMode,
+    startClock,
+    dismissIntro,
     switchMode,
     loadDrawing,
     persist,
+    discardDrawing,
     openSaveModal,
     closeSaveModal,
   };

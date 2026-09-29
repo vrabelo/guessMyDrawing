@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 import { LogOut } from "lucide-react";
-import { ModeToggle, type AppMode } from "./ModeToggle";
 
 type AppHeaderProps = {
-  mode: AppMode;
-  onModeChange: (mode: AppMode) => void;
+  onGoHome: () => void;
   onLogout: () => void;
 };
 
@@ -73,21 +71,19 @@ function IconCircle({
   );
 }
 
-export function AppHeader({ mode, onModeChange, onLogout }: AppHeaderProps) {
+export function AppHeader({ onGoHome, onLogout }: AppHeaderProps) {
   return (
     <header className="relative flex shrink-0 items-center justify-between gap-4 px-1 py-1.5">
       <div className="z-10 min-w-0 flex-1">
         <h1 className="font-display text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
-          <span className="bg-gradient-to-r from-[var(--accent)] to-[#5eead4] bg-clip-text text-transparent">
+          <button
+            type="button"
+            className="bg-gradient-to-r from-[var(--accent)] to-[#5eead4] bg-clip-text text-transparent cursor-pointer text-left"
+            onClick={onGoHome}
+          >
             Találd ki mit rajzoltam
-          </span>
+          </button>
         </h1>
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 z-20 flex justify-center">
-        <div className="pointer-events-auto">
-          <ModeToggle mode={mode} onChange={onModeChange} />
-        </div>
       </div>
 
       <div className="z-10 flex flex-1 items-center justify-end gap-2.5">

@@ -75,6 +75,8 @@ export type OwnedDrawing = {
   name: string;
   imageDataUrl: string;
   published: boolean;
+  /** Points awarded to the drawer from successful guesses on this drawing. */
+  drawerPointsEarned: number;
   createdAt: number;
   updatedAt: number;
 };

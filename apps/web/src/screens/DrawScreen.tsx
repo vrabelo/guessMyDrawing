@@ -1,73 +1,82 @@
+import { Button } from "../components/ui/Button";
 import { PaintCanvas } from "../components/paint/PaintCanvas";
 import { MyDrawingsPanel } from "../components/draw/MyDrawingsPanel";
 import { SaveDrawingModal } from "../components/draw/SaveDrawingModal";
-import { DrawModeToggle } from "../components/draw/DrawModeToggle";
-import { DrawRecommendBar } from "../components/draw/DrawRecommendBar";
 import {
   DrawCountdown,
   formatDrawCountdown,
 } from "../components/draw/DrawCountdown";
-import { DrawToolbarActions } from "../components/draw/DrawToolbarActions";
+import { DrawToolbar } from "../components/draw/DrawToolbar";
+import { DrawIntroModal } from "../components/draw/DrawIntroModal";
 import { useDrawSession } from "../components/draw/useDrawSession";
+import { ModeToggle, type AppMode } from "../components/shell/ModeToggle";
 import "../components/draw/draw-screen.css";
 
 type DrawScreenProps = {
   onSaved: () => void;
+  onModeChange: (mode: AppMode) => void;
 };
 
-export function DrawScreen({ onSaved }: DrawScreenProps) {
+export function DrawScreen({ onSaved, onModeChange }: DrawScreenProps) {
   const draw = useDrawSession(onSaved);
 
   const statusText = draw.mustSave
-    ? "Idő lejárt — mentsd el a rajzot."
-    : draw.showRecommendBar
-      ? "\u00a0"
-      : draw.statusMsg ||
-        (draw.selected?.published ? "\u00a0" : "Rajzolj, majd mentsd el.");
+    ? "Idő lejárt — mentsd el vagy dobd el a rajzot."
+    : "";
+
+  const themeLabel = draw.meta.name.trim() || "…";
 
   return (
     <div className="draw-workspace draw-screen">
       <div className="draw-screen__main">
         <div className="draw-screen__toolbar">
-          <DrawModeToggle
-            mode={draw.drawMode}
-            disabled={draw.readOnly || draw.busy || draw.mustSave}
-            onChange={draw.switchMode}
-          />
-          <DrawToolbarActions
-            showNewWord={
-              draw.promptLocked &&
-              !draw.selected?.published &&
-              !draw.selectedId &&
-              !draw.mustSave
+          <ModeToggle mode="draw" onChange={onModeChange} />
+          <DrawToolbar
+            drawMode={draw.drawMode}
+            themePick={draw.themePick}
+            modeDisabled={
+              Boolean(draw.selected?.published) ||
+              draw.busy ||
+              draw.mustSave ||
+              draw.timerActive
             }
             busy={draw.busy}
-            readOnly={draw.readOnly}
             mustSave={draw.mustSave}
             published={Boolean(draw.selected?.published)}
-            onNewWord={() => draw.applyGuidedPrompt()}
-            onNewDrawing={() => draw.startNew()}
+            onNewDrawing={() => draw.startNew("guided")}
+            onThemePickChange={draw.setThemePickAndRoll}
+            onFreeMode={draw.startFreeMode}
             onSave={draw.openSaveModal}
           />
         </div>
 
-        <p className="draw-status-spacer draw-screen__status" aria-live="polite">
-          {statusText}
-        </p>
+        {statusText ? (
+          <p
+            className="draw-status-spacer draw-screen__status"
+            aria-live="polite"
+          >
+            {statusText}
+          </p>
+        ) : null}
 
-        {draw.showRecommendBar ? (
-          <div className="draw-screen__recommend">
-            <DrawRecommendBar
-              themeName={draw.meta.name}
-              activeCategory={draw.activeCategory}
-              disabled={draw.busy || draw.mustSave}
-              onSelectCategory={(id) => draw.applyGuidedPrompt(id)}
-            />
-          </div>
-        ) : draw.selected?.published ? (
+        {draw.selected?.published ? (
           <p className="draw-screen__locked-note">
             Ez a rajz publikálva van — a vászon és az adatok zárolva.
           </p>
+        ) : null}
+
+        {draw.showStartClock ? (
+          <div className="draw-screen__start-clock">
+            <p className="draw-screen__theme-prompt">
+              Rajzold le ezt: &ldquo;{themeLabel}&rdquo;
+            </p>
+            <Button
+              label="Óra indítása"
+              variant="primary"
+              onClick={draw.startClock}
+              disabled={draw.busy}
+            />
+          </div>
         ) : null}
 
         <div className="canvas-stage canvas-stage--landscape draw-stage draw-stage--fill draw-screen__canvas">
@@ -96,10 +105,15 @@ export function DrawScreen({ onSaved }: DrawScreenProps) {
           search={draw.search}
           onSearchChange={draw.setSearch}
           onSelect={(d) => void draw.loadDrawing(d)}
-          onNew={() => draw.startNew()}
+          onNew={() => draw.startNew("guided")}
           loading={draw.loadingList}
         />
       </div>
+
+      <DrawIntroModal
+        open={draw.introOpen}
+        onConfirm={(dontShowAgain) => draw.dismissIntro(dontShowAgain)}
+      />
 
       <SaveDrawingModal
         open={draw.modalOpen}
@@ -111,6 +125,7 @@ export function DrawScreen({ onSaved }: DrawScreenProps) {
         busy={draw.busy}
         error={draw.error}
         onCancel={draw.closeSaveModal}
+        onDiscard={draw.discardDrawing}
         onConfirm={(m, published) => void draw.persist(m, published)}
       />
     </div>

@@ -15,6 +15,7 @@ import type { ResultOverlayState } from "./ResultOverlay";
 import {
   EXPIRE_OVERLAY_MS,
   MAX_ATTEMPTS,
+  PRESTART_SECONDS,
   WRONG_OVERLAY_MS,
 } from "./constants";
 
@@ -34,21 +35,23 @@ function pickRandomIndex(length: number, exclude?: number): number {
 }
 
 export function usePlaySession(onScored: () => void) {
-  const [sessionStarted, setSessionStarted] = useState(false);
   const [pool, setPool] = useState<AvailableDrawing[]>([]);
   const [index, setIndex] = useState(0);
   const [error, setError] = useState("");
   const [guess, setGuess] = useState("");
   const [wrongGuesses, setWrongGuesses] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasRequestedImage, setHasRequestedImage] = useState(false);
   const [result, setResult] = useState<ResultOverlayState>(null);
   const [now, setNow] = useState(() => Date.now());
   const [revealAnswer, setRevealAnswer] = useState<string | null>(null);
   const [roundActive, setRoundActive] = useState(false);
   const [startBusy, setStartBusy] = useState(false);
+  const [prestartLeft, setPrestartLeft] = useState<number | null>(null);
   const wrongTimerRef = useRef<number | null>(null);
   const fetchingAnswerRef = useRef(false);
   const expireHandledRef = useRef(false);
+  const startRoundRef = useRef<() => Promise<void>>(async () => {});
 
   const loadPool = useCallback(async () => {
     setLoading(true);
@@ -58,30 +61,28 @@ export function usePlaySession(onScored: () => void) {
       setPool(list);
       setIndex(list.length === 0 ? 0 : pickRandomIndex(list.length));
       setRoundActive(false);
+      setPrestartLeft(null);
+      setHasRequestedImage(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nem sikerült betölteni.");
       setPool([]);
+      setHasRequestedImage(true);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  function handleSessionStart() {
-    setSessionStarted(true);
-    void loadPool();
-  }
-
   useEffect(() => {
-    if (!sessionStarted) return;
     const ws = createDrawingsSocket((drawing: PublicDrawing) => {
       setPool((prev) => {
         if (prev.some((d) => d.id === drawing.id)) return prev;
         const next: AvailableDrawing = { ...drawing, progress: null };
         const wasEmpty = prev.length === 0;
         const updated = [...prev, next];
-        if (wasEmpty) {
+        if (wasEmpty && hasRequestedImage) {
           setIndex(0);
           setRoundActive(false);
+          setPrestartLeft(null);
         }
         return updated;
       });
@@ -89,7 +90,7 @@ export function usePlaySession(onScored: () => void) {
     return () => {
       ws?.close();
     };
-  }, [sessionStarted]);
+  }, [hasRequestedImage]);
 
   const current = pool[index] ?? null;
   const currentId = current?.id;
@@ -101,6 +102,7 @@ export function usePlaySession(onScored: () => void) {
     setRevealAnswer(null);
     setRoundActive(false);
     setStartBusy(false);
+    setPrestartLeft(null);
     fetchingAnswerRef.current = false;
     expireHandledRef.current = false;
     if (wrongTimerRef.current != null) {
@@ -136,8 +138,26 @@ export function usePlaySession(onScored: () => void) {
   const locked = roundEnded || !roundActive;
   const priorFailure = Boolean(progress?.priorFailure);
 
+  const awaitingImage = !hasRequestedImage || (hasRequestedImage && !loading && !current && !error);
+  const awaitingMehet =
+    hasRequestedImage &&
+    Boolean(current) &&
+    !roundActive &&
+    !roundEnded &&
+    prestartLeft == null;
+
+  function handleRequestImage() {
+    void loadPool();
+  }
+
+  function handleMehet() {
+    if (!current || roundActive || roundEnded || startBusy) return;
+    setPrestartLeft(PRESTART_SECONDS);
+  }
+
   async function handleStartRound() {
     if (!current || roundActive || startBusy || roundEnded) return;
+    setPrestartLeft(null);
     setStartBusy(true);
     setError("");
     try {
@@ -157,10 +177,25 @@ export function usePlaySession(onScored: () => void) {
       setNow(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nem sikerült indítani.");
+      setPrestartLeft(null);
     } finally {
       setStartBusy(false);
     }
   }
+
+  startRoundRef.current = handleStartRound;
+
+  useEffect(() => {
+    if (prestartLeft == null || roundActive || roundEnded || !currentId) return;
+    if (prestartLeft <= 0) {
+      void startRoundRef.current();
+      return;
+    }
+    const tick = window.setTimeout(() => {
+      setPrestartLeft((n) => (n == null ? null : n - 1));
+    }, 1000);
+    return () => window.clearTimeout(tick);
+  }, [prestartLeft, roundActive, roundEnded, currentId]);
 
   useEffect(() => {
     if (!currentId || !roundActive || locked) return;
@@ -226,6 +261,7 @@ export function usePlaySession(onScored: () => void) {
     });
     setResult(null);
     setRoundActive(false);
+    setPrestartLeft(null);
   }
 
   useEffect(() => {
@@ -323,7 +359,6 @@ export function usePlaySession(onScored: () => void) {
   }
 
   return {
-    sessionStarted,
     loading,
     error,
     current,
@@ -337,12 +372,16 @@ export function usePlaySession(onScored: () => void) {
     roundActive,
     roundEnded,
     startBusy,
+    prestartLeft,
+    hasRequestedImage,
+    awaitingImage,
+    awaitingMehet,
     elapsedMs,
     letterMask,
     potentialPoints,
-    handleSessionStart,
     loadPool,
-    handleStartRound,
+    handleRequestImage,
+    handleMehet,
     handlePass,
     handleReveal,
     handleGuess,

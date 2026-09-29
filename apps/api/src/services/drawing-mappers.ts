@@ -29,7 +29,10 @@ export async function toPublicDrawing(
   };
 }
 
-export function toOwnedDrawing(drawing: Drawing): OwnedDrawing {
+export function toOwnedDrawing(
+  drawing: Drawing,
+  drawerPointsEarned = 0
+): OwnedDrawing {
   return {
     id: drawing.id,
     theme: drawing.theme?.trim() || "",
@@ -39,6 +42,7 @@ export function toOwnedDrawing(drawing: Drawing): OwnedDrawing {
     name: drawing.name,
     imageDataUrl: drawing.imageDataUrl,
     published: isPublished(drawing),
+    drawerPointsEarned,
     createdAt: drawing.createdAt ?? 0,
     updatedAt: drawing.updatedAt ?? drawing.createdAt ?? 0,
   };

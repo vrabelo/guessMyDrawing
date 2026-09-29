@@ -51,7 +51,7 @@ export function MyDrawingsPanel({
         />
       </div>
 
-      <div className="game-card min-h-0 flex-1 overflow-y-auto px-2 py-2">
+      <div className="game-card my-drawings-list min-h-0 flex-1 px-2 py-2">
         {loading ? (
           <p className="px-2 py-3 text-sm text-[var(--muted)]">Betöltés…</p>
         ) : filtered.length === 0 ? (
@@ -82,8 +82,13 @@ export function MyDrawingsPanel({
                       )}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-[var(--ink)]">
-                        {d.name}
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="block min-w-0 truncate text-sm font-semibold text-[var(--ink)]">
+                          {d.name}
+                        </span>
+                        <span className="shrink-0 text-xs font-semibold tabular-nums text-[var(--accent)]">
+                          +{d.drawerPointsEarned} pont
+                        </span>
                       </span>
                       <span className="mt-0.5 flex items-center gap-2 text-[11px] text-[var(--muted)]">
                         <span

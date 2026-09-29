@@ -1,13 +1,14 @@
-import { Button } from "../ui/Button";
+import { Button } from "../components/ui/Button";
+import "../components/play/play-screen.css";
 
-type PlayIntroCardProps = {
-  onStart: () => void;
-  busy?: boolean;
+type HomeScreenProps = {
+  onChoosePlay: () => void;
+  onChooseDraw: () => void;
 };
 
-export function PlayIntroCard({ onStart, busy = false }: PlayIntroCardProps) {
+export function HomeScreen({ onChoosePlay, onChooseDraw }: HomeScreenProps) {
   return (
-    <div className="flex min-h-0 flex-1 items-center justify-center p-2">
+    <div className="home-screen play-screen play-screen--center">
       <div className="game-card max-h-full w-full max-w-2xl overflow-y-auto p-6 sm:p-8">
         <h2 className="mb-3 text-xl font-semibold text-[var(--ink)] sm:text-2xl">
           Hogyan működik a játék?
@@ -39,9 +40,9 @@ export function PlayIntroCard({ onStart, busy = false }: PlayIntroCardProps) {
               következő; ha minden betű kiderül, a feladvány lejár.
             </li>
             <li>
-              Minden feladvány előtt{" "}
-              <strong className="text-[var(--ink)]">5 másodperces</strong>{" "}
-              visszaszámláló indul, aztán lehet tippelni.
+              A kép betöltése után a{" "}
+              <strong className="text-[var(--ink)]">Mehet!</strong> gombbal
+              indul a visszaszámláló.
             </li>
           </ul>
         </section>
@@ -64,13 +65,21 @@ export function PlayIntroCard({ onStart, busy = false }: PlayIntroCardProps) {
           </ul>
         </section>
 
-        <Button
-          label="Játék indítása. Kérem az első képet"
-          variant="primary"
-          fullWidth
-          disabled={busy}
-          onClick={onStart}
-        />
+        <div className="home-screen__cta">
+          <span className="home-screen__cta-label">Játék indítása:</span>
+          <div className="home-screen__cta-buttons">
+            <Button
+              label="Rajzolok"
+              variant="secondary"
+              onClick={onChooseDraw}
+            />
+            <Button
+              label="Kitalálok"
+              variant="primary"
+              onClick={onChoosePlay}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

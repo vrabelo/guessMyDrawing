@@ -15,11 +15,12 @@ type SaveDrawingModalProps = {
   initial: SaveDrawingMeta;
   /** When true, theme + answer come from the guided word bank and stay locked. */
   guidedLock?: boolean;
-  /** Time ran out — cancel is blocked until the drawing is saved. */
+  /** Time ran out — cancel is blocked until the drawing is saved or discarded. */
   forceSave?: boolean;
   busy?: boolean;
   error?: string;
   onCancel: () => void;
+  onDiscard: () => void;
   onConfirm: (meta: SaveDrawingMeta, published: boolean) => void;
 };
 
@@ -33,6 +34,7 @@ export function SaveDrawingModal({
   busy = false,
   error = "",
   onCancel,
+  onDiscard,
   onConfirm,
 }: SaveDrawingModalProps) {
   const [step, setStep] = useState<Step>("meta");
@@ -125,6 +127,13 @@ export function SaveDrawingModal({
                   className="flex-1"
                 />
               ) : null}
+              <Button
+                label="Eldobás"
+                variant="secondary"
+                onClick={onDiscard}
+                disabled={busy}
+                className="flex-1"
+              />
               <Button
                 label="Tovább"
                 variant="primary"

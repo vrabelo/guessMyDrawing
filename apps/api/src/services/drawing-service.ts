@@ -44,8 +44,11 @@ export class DrawingService {
     return toPublicDrawing(drawing, this.users);
   }
 
-  private toOwned(drawing: Parameters<typeof toOwnedDrawing>[0]) {
-    return toOwnedDrawing(drawing);
+  private toOwned(
+    drawing: Parameters<typeof toOwnedDrawing>[0],
+    drawerPointsEarned = 0
+  ) {
+    return toOwnedDrawing(drawing, drawerPointsEarned);
   }
 
   private withProgress = withProgress;
@@ -155,7 +158,14 @@ export class DrawingService {
 
   async listMine(userId: string): Promise<OwnedDrawing[]> {
     const list = await this.drawings.findByUserId(userId);
-    return list.map((d) => this.toOwned(d));
+    const allProgress = await this.progress.findAll();
+    const byDrawing = new Map<string, number>();
+    for (const p of allProgress) {
+      if (p.status !== "solved") continue;
+      const pts = drawerPointsForAttempt(p.attemptsUsed);
+      byDrawing.set(p.drawingId, (byDrawing.get(p.drawingId) ?? 0) + pts);
+    }
+    return list.map((d) => this.toOwned(d, byDrawing.get(d.id) ?? 0));
   }
 
   async listAvailable(userId: string): Promise<AvailableDrawing[]> {

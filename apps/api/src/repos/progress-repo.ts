@@ -21,6 +21,10 @@ export class ProgressRepo {
     });
   }
 
+  findAll(): Promise<UserDrawingProgress[]> {
+    return this.db.findMany<UserDrawingProgress>("user_drawing_progress");
+  }
+
   async ensureInProgress(
     userId: string,
     drawingId: string

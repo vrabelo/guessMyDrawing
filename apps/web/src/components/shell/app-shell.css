@@ -34,6 +34,13 @@
   }
 }
 
+.app-shell__grid--home {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
 .app-shell__grid--draw {
   /* draw screen manages its own columns */
 }

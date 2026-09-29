@@ -5,8 +5,8 @@ import { PlaySideRail } from "./PlaySideRail";
 import { ResultOverlay, type ResultOverlayState } from "./ResultOverlay";
 
 type PuzzleBoardProps = {
-  src: string;
-  authorAlias: string;
+  src?: string | null;
+  authorAlias?: string;
   index: number;
   total: number;
   hint: string;
@@ -16,10 +16,14 @@ type PuzzleBoardProps = {
   guess: string;
   wrongGuesses: string[];
   guessLocked: boolean;
-  /** Round has not started — show Mehet overlay, hide live guess UI. */
-  awaitingStart?: boolean;
-  onStart?: () => void;
+  prestartLeft?: number | null;
   startBusy?: boolean;
+  /** Show Kérem a képet / Mehet gate overlay. */
+  showGate?: boolean;
+  canRequestImage?: boolean;
+  canMehet?: boolean;
+  onRequestImage?: () => void;
+  onMehet?: () => void;
   elapsedMs: number;
   letterMask: string | null;
   potentialPoints: number;
@@ -33,7 +37,7 @@ type PuzzleBoardProps = {
 
 export function PuzzleBoard({
   src,
-  authorAlias,
+  authorAlias = "",
   index,
   total,
   hint,
@@ -43,9 +47,13 @@ export function PuzzleBoard({
   guess,
   wrongGuesses,
   guessLocked,
-  awaitingStart = false,
-  onStart,
+  prestartLeft = null,
   startBusy = false,
+  showGate = false,
+  canRequestImage = false,
+  canMehet = false,
+  onRequestImage,
+  onMehet,
   elapsedMs,
   letterMask,
   potentialPoints,
@@ -60,7 +68,10 @@ export function PuzzleBoard({
     result?.kind === "success" ||
     result?.kind === "failure" ||
     result?.kind === "expired";
-  const showGuess = !guessLocked && !awaitingStart && !roundOver;
+  const awaitingCountdown = prestartLeft != null;
+  const imageDimmed = awaitingCountdown || showGate;
+  const showGuess =
+    !guessLocked && !awaitingCountdown && !showGate && !roundOver && Boolean(src);
 
   return (
     <div className="play-stage flex h-full min-h-0 w-full gap-2">
@@ -75,35 +86,31 @@ export function PuzzleBoard({
 
         <div className="game-card relative min-h-0 flex-1 overflow-hidden p-1.5">
           <div className="canvas-stage canvas-stage--landscape relative h-full min-h-0 w-full overflow-hidden">
-            <img
-              src={src}
-              alt="Feladvány"
-              className={[
-                "canvas-stage__img",
-                awaitingStart ? "canvas-stage__img--awaiting" : "",
-              ].join(" ")}
-            />
+            {src ? (
+              <img
+                src={src}
+                alt="Feladvány"
+                className={[
+                  "canvas-stage__img",
+                  imageDimmed ? "canvas-stage__img--awaiting" : "",
+                ].join(" ")}
+              />
+            ) : (
+              <div className="canvas-stage__img canvas-stage__img--awaiting flex h-full w-full items-center justify-center bg-black/40" />
+            )}
 
-            {!awaitingStart ? (
+            {showGuess ? (
               <div className="play-guess-overlay absolute inset-x-0 top-0 z-20">
-                {showGuess ? (
-                  <GuessCard
-                    guess={guess}
-                    locked={false}
-                    elapsedMs={elapsedMs}
-                    letterMask={letterMask}
-                    potentialPoints={potentialPoints}
-                    onGuessChange={onGuessChange}
-                    onSubmit={onGuessSubmit}
-                    onPass={onPass}
-                  />
-                ) : (
-                  <div
-                    className="guess-top-bar guess-top-bar--spacer"
-                    aria-hidden
-                  />
-                )}
-
+                <GuessCard
+                  guess={guess}
+                  locked={false}
+                  elapsedMs={elapsedMs}
+                  letterMask={letterMask}
+                  potentialPoints={potentialPoints}
+                  onGuessChange={onGuessChange}
+                  onSubmit={onGuessSubmit}
+                  onPass={onPass}
+                />
                 <div className="play-guess-overlay__hints">
                   <HintPanel
                     hint={hint}
@@ -114,36 +121,58 @@ export function PuzzleBoard({
                   />
                 </div>
               </div>
+            ) : !showGate && !awaitingCountdown ? (
+              <div className="play-guess-overlay absolute inset-x-0 top-0 z-20">
+                <div className="guess-top-bar guess-top-bar--spacer" aria-hidden />
+              </div>
             ) : null}
 
-            <div className="pointer-events-none absolute right-2 bottom-2 z-10 rounded-full bg-black/35 px-2.5 py-1 backdrop-blur-md">
-              <p className="text-[11px] font-medium tracking-wide text-white/85">
-                @{authorAlias} · {index + 1}/{total}
-              </p>
-            </div>
+            {src && authorAlias ? (
+              <div className="pointer-events-none absolute right-2 bottom-2 z-10 rounded-full bg-black/35 px-2.5 py-1 backdrop-blur-md">
+                <p className="text-[11px] font-medium tracking-wide text-white/85">
+                  @{authorAlias} · {index + 1}/{total}
+                </p>
+              </div>
+            ) : null}
 
-            {awaitingStart ? (
-              <div
-                className="result-overlay absolute inset-0 z-30 flex items-center justify-center p-4"
-                role="dialog"
-                aria-label="Kör indítása"
-              >
-                <div className="result-overlay__card flex max-w-sm flex-col items-center gap-4 px-7 py-6 text-center">
-                  <p className="text-base font-semibold text-[var(--ink)]">
-                    Készen állsz a tippelésre?
-                  </p>
-                  <p className="text-sm text-[var(--muted)]">
-                    A visszaszámláló a Mehet gombra indul.
-                  </p>
+            {showGate ? (
+              <div className="play-gate" role="dialog" aria-label="Kör indítása">
+                <div className="play-gate__actions">
                   <button
                     type="button"
                     className="guess-faint-btn guess-faint-btn--go"
-                    disabled={startBusy}
-                    onClick={onStart}
+                    disabled={!canRequestImage || startBusy}
+                    onClick={onRequestImage}
+                  >
+                    Kérem a képet!
+                  </button>
+                  <button
+                    type="button"
+                    className="guess-faint-btn guess-faint-btn--go"
+                    disabled={!canMehet || startBusy}
+                    onClick={onMehet}
                   >
                     Mehet!
                   </button>
                 </div>
+              </div>
+            ) : null}
+
+            {awaitingCountdown ? (
+              <div
+                className="prestart-countdown"
+                role="status"
+                aria-live="polite"
+                aria-label={`Indulás ${prestartLeft} másodperc múlva`}
+              >
+                <span
+                  className={[
+                    "prestart-countdown__num",
+                    startBusy ? "prestart-countdown__num--busy" : "",
+                  ].join(" ")}
+                >
+                  {prestartLeft}
+                </span>
               </div>
             ) : null}
 
