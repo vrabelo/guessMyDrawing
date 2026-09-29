@@ -30,9 +30,9 @@ export function DrawIntroModal({ open, onConfirm }: DrawIntroModalProps) {
           véletlenszerű feladvány között.
         </p>
         <p className="mb-4 text-sm leading-relaxed text-[var(--muted-strong)]">
-          Az Oké után indítsd el az órát. Új kép megnyomásával a számláló és a
-          téma is megváltozik. Keress egy jó témát vagy válassz szabadon — 2
-          perced van a felismerhető kép elkészítésére.
+          Az Oké után egy ablakban indíthatod a rajzolást. Új rajzzal a számláló
+          és a téma is újraindul. Kategóriát vagy szabad rajzot választhatsz — 2
+          perced van; később nem folytatható.
         </p>
         <label className="mb-5 flex cursor-pointer items-start gap-2.5 text-sm text-[var(--muted-strong)]">
           <input

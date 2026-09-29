@@ -8,7 +8,7 @@ type ModeToggleProps = {
 };
 
 const modes: { id: AppMode; label: string }[] = [
-  { id: "play", label: "Játszom" },
+  { id: "play", label: "Kitalálom" },
   { id: "draw", label: "Rajzolok" },
 ];
 

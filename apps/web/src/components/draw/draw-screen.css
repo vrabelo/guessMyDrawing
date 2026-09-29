@@ -23,13 +23,28 @@
 }
 
 .draw-screen__toolbar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.5rem 0.75rem;
   margin-bottom: 0.25rem;
-  padding-inline: 0.125rem;
+  padding-inline: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.draw-screen__theme-center {
+  margin: 0;
+  min-width: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-inline: 0.25rem;
 }
 
 /* Fixed size: width from "Szabad rajz", height matches Mentés / Button */
@@ -41,7 +56,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .draw-toolbar__select {
@@ -145,25 +160,6 @@
   --draw-btn-w: 8.25rem;
   margin-bottom: 0.5rem;
   margin-top: 0;
-}
-
-.draw-screen__start-clock {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-  padding-inline: 0.125rem;
-}
-
-.draw-screen__theme-prompt {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--muted-strong);
 }
 
 .draw-screen__locked-note {

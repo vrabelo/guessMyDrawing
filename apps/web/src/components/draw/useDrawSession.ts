@@ -56,13 +56,6 @@ function guidedMeta(category?: ThemeCategoryId): {
   };
 }
 
-function guidedMetaForPick(pick: ThemePick): {
-  meta: SaveDrawingMeta;
-  category: ThemeCategoryId;
-} {
-  return pick === "auto" ? guidedMeta() : guidedMeta(pick);
-}
-
 export function useDrawSession(onSaved: () => void) {
   const paintRef = useRef<PaintCanvasHandle>(null);
   const [mine, setMine] = useState<OwnedDrawing[]>([]);
@@ -72,7 +65,7 @@ export function useDrawSession(onSaved: () => void) {
   const [drawMode, setDrawMode] = useState<DrawMode>("guided");
   const [themePick, setThemePick] = useState<ThemePick>("auto");
   const [promptLocked, setPromptLocked] = useState(true);
-  const initialGuided = useRef(guidedMetaForPick("auto")).current;
+  const initialGuided = useRef(guidedMeta()).current;
   const [meta, setMeta] = useState<SaveDrawingMeta>(initialGuided.meta);
   const [activeCategory, setActiveCategory] = useState<ThemeCategoryId>(
     initialGuided.category
@@ -95,11 +88,18 @@ export function useDrawSession(onSaved: () => void) {
     ? Math.max(0, DRAW_TIME_LIMIT_MS - (now - drawStartedAt))
     : 0;
   const mustSave = timeExpired && !selected?.published;
-  const showStartClock =
+  const showStartModal =
     !introOpen &&
     !selected?.published &&
+    !selectedId &&
     drawStartedAt == null &&
-    !mustSave;
+    !mustSave &&
+    !modalOpen;
+
+  /** In-progress attempt that leave/navigation should wipe. */
+  const attemptActive =
+    !selected?.published &&
+    (drawStartedAt != null || mustSave || showStartModal);
 
   const refreshMine = useCallback(async () => {
     setLoadingList(true);
@@ -134,50 +134,41 @@ export function useDrawSession(onSaved: () => void) {
     }
   }, [timerActive, timeExpired, remainingMs]);
 
-  function setThemePickAndRoll(pick: ThemePick) {
-    if (mustSave || busy) return;
+  function applyThemePick(pick: ThemePick) {
     setThemePick(pick);
+    if (pick === "free") {
+      setDrawMode("free");
+      setPromptLocked(false);
+      setMeta(emptyMeta());
+      return;
+    }
     setDrawMode("guided");
-    const next = guidedMetaForPick(pick);
+    const next = pick === "auto" ? guidedMeta() : guidedMeta(pick);
     setMeta(next.meta);
     setActiveCategory(next.category);
     setPromptLocked(true);
   }
 
-  function resetToNewDrawing(mode: DrawMode = drawMode) {
+  function resetToNewDrawing(pick: ThemePick = themePick) {
     setSelectedId(null);
     setError("");
-    setDrawMode(mode);
     setTimeExpired(false);
     forcedModalOpened.current = false;
     setDrawStartedAt(null);
     setNow(Date.now());
     setModalOpen(false);
-    if (mode === "guided") {
-      const next = guidedMetaForPick(themePick);
-      setMeta(next.meta);
-      setActiveCategory(next.category);
-      setPromptLocked(true);
-    } else {
-      setPromptLocked(false);
-      setMeta(emptyMeta());
-    }
+    applyThemePick(pick);
     paintRef.current?.clear();
   }
 
-  function startNew(mode: DrawMode = drawMode) {
-    if (mustSave) return;
-    resetToNewDrawing(mode);
+  function setThemePickAndRoll(pick: ThemePick) {
+    if (mustSave || busy) return;
+    resetToNewDrawing(pick);
   }
 
-  function startFreeMode() {
-    if (selected?.published || busy || mustSave) return;
-    if (selectedId) {
-      setDrawMode("free");
-      return;
-    }
-    if (drawStartedAt != null && !timeExpired) return;
-    resetToNewDrawing("free");
+  function startNew() {
+    if (mustSave || busy) return;
+    resetToNewDrawing(themePick);
   }
 
   function startClock() {
@@ -194,18 +185,10 @@ export function useDrawSession(onSaved: () => void) {
     setIntroOpen(false);
   }
 
-  function switchMode(mode: DrawMode) {
-    if (selected?.published || busy || mustSave) return;
-    if (selectedId) {
-      setDrawMode(mode);
-      return;
-    }
-    if (drawStartedAt != null && !timeExpired) return;
-    resetToNewDrawing(mode);
-  }
-
   async function loadDrawing(drawing: OwnedDrawing) {
     if (mustSave) return;
+    // Unpublished drafts cannot be continued.
+    if (!drawing.published) return;
     setSelectedId(drawing.id);
     setDrawMode("free");
     setPromptLocked(false);
@@ -213,6 +196,7 @@ export function useDrawSession(onSaved: () => void) {
     forcedModalOpened.current = false;
     setDrawStartedAt(null);
     setIntroOpen(false);
+    setModalOpen(false);
     setMeta({
       theme: drawing.theme,
       hint1: drawing.hint1,
@@ -228,16 +212,13 @@ export function useDrawSession(onSaved: () => void) {
     }
   }
 
-  async function persist(nextMeta: SaveDrawingMeta, published: boolean) {
+  async function persist(nextMeta: SaveDrawingMeta) {
     setBusy(true);
     setError("");
     const imageDataUrl = paintRef.current?.toDataURL() ?? "";
-    const body = { ...nextMeta, imageDataUrl, published };
+    const body = { ...nextMeta, imageDataUrl, published: true };
     try {
-      const saved =
-        selectedId && !selected?.published
-          ? await api.updateDrawing(selectedId, body)
-          : await api.createDrawing(body);
+      const saved = await api.createDrawing(body);
       setMeta(nextMeta);
       setSelectedId(saved.id);
       setModalOpen(false);
@@ -255,10 +236,17 @@ export function useDrawSession(onSaved: () => void) {
 
   function discardDrawing() {
     if (busy) return;
-    resetToNewDrawing(drawMode);
+    resetToNewDrawing(themePick);
+  }
+
+  /** Wipe in-progress attempt when leaving draw (home / Kitalálom / unmount). */
+  function discardAttempt() {
+    setBusy(false);
+    resetToNewDrawing(themePick);
   }
 
   function openSaveModal() {
+    if (selected?.published) return;
     setError("");
     setModalOpen(true);
   }
@@ -269,6 +257,9 @@ export function useDrawSession(onSaved: () => void) {
       setError("");
     }
   }
+
+  const themeLabel =
+    drawMode === "free" ? "Szabad rajz" : meta.name.trim() || "…";
 
   return {
     paintRef,
@@ -292,16 +283,17 @@ export function useDrawSession(onSaved: () => void) {
     timerActive,
     remainingMs,
     mustSave,
-    showStartClock,
+    showStartModal,
+    attemptActive,
+    themeLabel,
     setThemePickAndRoll,
     startNew,
-    startFreeMode,
     startClock,
     dismissIntro,
-    switchMode,
     loadDrawing,
     persist,
     discardDrawing,
+    discardAttempt,
     openSaveModal,
     closeSaveModal,
   };

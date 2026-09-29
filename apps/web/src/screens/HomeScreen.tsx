@@ -74,7 +74,7 @@ export function HomeScreen({ onChoosePlay, onChooseDraw }: HomeScreenProps) {
               onClick={onChooseDraw}
             />
             <Button
-              label="Kitalálok"
+              label="Kitalálom"
               variant="primary"
               onClick={onChoosePlay}
             />

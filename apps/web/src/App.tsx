@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   LeaderboardsResponse,
   UserStatsResponse,
@@ -22,6 +22,7 @@ export default function App() {
   const [view, setView] = useState<AppView>("home");
   const [boards, setBoards] = useState<LeaderboardsResponse | null>(null);
   const [stats, setStats] = useState<UserStatsResponse | null>(null);
+  const discardDrawRef = useRef<() => void>(() => {});
 
   const refreshSideData = useCallback(async () => {
     try {
@@ -41,6 +42,10 @@ export default function App() {
     if (user) void refreshSideData();
   }, [user, refreshSideData]);
 
+  function leaveDrawIfNeeded() {
+    if (view === "draw") discardDrawRef.current();
+  }
+
   if (!user) {
     return (
       <main className="auth-screen-main">
@@ -59,8 +64,12 @@ export default function App() {
   return (
     <main className="app-shell">
       <AppHeader
-        onGoHome={() => setView("home")}
+        onGoHome={() => {
+          leaveDrawIfNeeded();
+          setView("home");
+        }}
         onLogout={() => {
+          leaveDrawIfNeeded();
           clearSession();
           setUser(null);
           setView("home");
@@ -90,6 +99,9 @@ export default function App() {
           <DrawScreen
             onSaved={() => void refreshSideData()}
             onModeChange={setView}
+            onBindDiscard={(fn) => {
+              discardDrawRef.current = fn;
+            }}
           />
         )}
       </div>
