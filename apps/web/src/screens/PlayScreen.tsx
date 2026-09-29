@@ -2,7 +2,6 @@ import type {
   LeaderboardsResponse,
   UserStatsResponse,
 } from "@tipp-my-draw/shared";
-import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { ModeToggle, type AppMode } from "../components/shell/ModeToggle";
 import { SidePanel } from "../components/shell/SidePanel";
@@ -29,10 +28,12 @@ export function PlayScreen({
   const session = usePlaySession(onScored);
 
   const showStartModal =
-    !session.hasRequestedImage &&
+    !session.loading &&
     !session.roundActive &&
     session.prestartLeft == null &&
-    !session.loading;
+    !session.result &&
+    (!session.hasRequestedImage ||
+      (session.needsStartConfirm && Boolean(session.current)));
 
   /** Only show the puzzle image during an active round — no preview, no blur. */
   const puzzleSrc = session.roundActive
@@ -48,12 +49,6 @@ export function PlayScreen({
           {session.error ? (
             <p className="play-screen__error">{session.error}</p>
           ) : null}
-          <Button
-            label="Kérem a képet!"
-            variant="secondary"
-            className="play-screen__refresh"
-            onClick={() => void session.handleIndulhat()}
-          />
         </Card>
       </div>
     ) : (

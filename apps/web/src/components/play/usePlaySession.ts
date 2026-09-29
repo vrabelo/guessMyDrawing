@@ -14,6 +14,7 @@ import { api, createDrawingsSocket } from "../../api/client";
 import type { ResultOverlayState } from "./ResultOverlay";
 import {
   MAX_ATTEMPTS,
+  PASS_OVERLAY_MS,
   PRESTART_SECONDS,
   WRONG_OVERLAY_MS,
 } from "./constants";
@@ -41,6 +42,7 @@ export function usePlaySession(onScored: () => void) {
   const [wrongGuesses, setWrongGuesses] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasRequestedImage, setHasRequestedImage] = useState(false);
+  const [needsStartConfirm, setNeedsStartConfirm] = useState(false);
   const [result, setResult] = useState<ResultOverlayState>(null);
   const [now, setNow] = useState(() => Date.now());
   const [revealAnswer, setRevealAnswer] = useState<string | null>(null);
@@ -48,9 +50,11 @@ export function usePlaySession(onScored: () => void) {
   const [startBusy, setStartBusy] = useState(false);
   const [prestartLeft, setPrestartLeft] = useState<number | null>(null);
   const wrongTimerRef = useRef<number | null>(null);
+  const passTimerRef = useRef<number | null>(null);
   const fetchingAnswerRef = useRef(false);
   const expireHandledRef = useRef(false);
   const startRoundRef = useRef<() => Promise<void>>(async () => {});
+  const dismissContinueRef = useRef<() => void>(() => {});
   const pendingPrestartRef = useRef(false);
 
   const loadPool = useCallback(async () => {
@@ -63,10 +67,12 @@ export function usePlaySession(onScored: () => void) {
       setRoundActive(false);
       setPrestartLeft(null);
       setHasRequestedImage(true);
+      setNeedsStartConfirm(list.length > 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nem sikerült betölteni.");
       setPool([]);
       setHasRequestedImage(true);
+      setNeedsStartConfirm(false);
     } finally {
       setLoading(false);
     }
@@ -83,6 +89,7 @@ export function usePlaySession(onScored: () => void) {
           setIndex(0);
           setRoundActive(false);
           setPrestartLeft(null);
+          setNeedsStartConfirm(true);
         }
         return updated;
       });
@@ -108,10 +115,14 @@ export function usePlaySession(onScored: () => void) {
       window.clearTimeout(wrongTimerRef.current);
       wrongTimerRef.current = null;
     }
+    if (passTimerRef.current != null) {
+      window.clearTimeout(passTimerRef.current);
+      passTimerRef.current = null;
+    }
     if (pendingPrestartRef.current && currentId) {
       pendingPrestartRef.current = false;
       setPrestartLeft(PRESTART_SECONDS);
-    } else {
+    } else if (!pendingPrestartRef.current) {
       setPrestartLeft(null);
     }
   }, [currentId]);
@@ -120,6 +131,9 @@ export function usePlaySession(onScored: () => void) {
     return () => {
       if (wrongTimerRef.current != null) {
         window.clearTimeout(wrongTimerRef.current);
+      }
+      if (passTimerRef.current != null) {
+        window.clearTimeout(passTimerRef.current);
       }
     };
   }, []);
@@ -130,13 +144,12 @@ export function usePlaySession(onScored: () => void) {
   const hintRevealed = Boolean(hintsRevealed[0]);
   const attemptsUsed = progress?.attemptsUsed ?? 0;
   const attemptsLeft =
-    status === "solved" || status === "failed" || status === "expired"
+    status === "solved" || status === "failed"
       ? 0
       : MAX_ATTEMPTS - attemptsUsed;
   const roundEnded =
     status === "solved" ||
     status === "failed" ||
-    status === "expired" ||
     result?.kind === "success" ||
     result?.kind === "failure" ||
     result?.kind === "expired" ||
@@ -144,7 +157,9 @@ export function usePlaySession(onScored: () => void) {
   const locked = roundEnded || !roundActive;
   const priorFailure = Boolean(progress?.priorFailure);
 
-  const awaitingImage = !hasRequestedImage || (hasRequestedImage && !loading && !current && !error);
+  const awaitingImage =
+    !hasRequestedImage ||
+    (hasRequestedImage && !loading && !current && !error);
   const awaitingMehet =
     hasRequestedImage &&
     Boolean(current) &&
@@ -152,12 +167,20 @@ export function usePlaySession(onScored: () => void) {
     !roundEnded &&
     prestartLeft == null;
 
+  function clearPassTimer() {
+    if (passTimerRef.current != null) {
+      window.clearTimeout(passTimerRef.current);
+      passTimerRef.current = null;
+    }
+  }
+
   function handleRequestImage() {
     void loadPool();
   }
 
   function handleMehet() {
     if (!current || roundActive || roundEnded || startBusy) return;
+    setNeedsStartConfirm(false);
     setPrestartLeft(PRESTART_SECONDS);
   }
 
@@ -166,6 +189,7 @@ export function usePlaySession(onScored: () => void) {
     if (roundActive || roundEnded || startBusy || prestartLeft != null) return;
 
     if (current && hasRequestedImage) {
+      setNeedsStartConfirm(false);
       setPrestartLeft(PRESTART_SECONDS);
       return;
     }
@@ -182,8 +206,10 @@ export function usePlaySession(onScored: () => void) {
         pendingPrestartRef.current = false;
         setIndex(0);
         setPrestartLeft(null);
+        setNeedsStartConfirm(false);
         return;
       }
+      setNeedsStartConfirm(false);
       setIndex(pickRandomIndex(list.length));
       // prestart applied in currentId effect via pendingPrestartRef
     } catch (err) {
@@ -192,6 +218,7 @@ export function usePlaySession(onScored: () => void) {
       setPool([]);
       setHasRequestedImage(true);
       setPrestartLeft(null);
+      setNeedsStartConfirm(false);
     } finally {
       setLoading(false);
     }
@@ -200,6 +227,7 @@ export function usePlaySession(onScored: () => void) {
   async function handleStartRound() {
     if (!current || roundActive || startBusy || roundEnded) return;
     setPrestartLeft(null);
+    setNeedsStartConfirm(false);
     setStartBusy(true);
     setError("");
     try {
@@ -246,7 +274,7 @@ export function usePlaySession(onScored: () => void) {
   }, [currentId, roundActive, locked]);
 
   const elapsedMs =
-    roundActive && progress?.guessStartedAt != null
+    roundActive && progress?.guessStartedAt != null && progress.guessStartedAt > 0
       ? Math.max(0, now - progress.guessStartedAt)
       : 0;
 
@@ -295,34 +323,39 @@ export function usePlaySession(onScored: () => void) {
     );
   }
 
+  /** Defer drawing (pass / expire): keep in pool, pick another if possible, then prestart. */
+  function deferDrawingAndContinue(drawingId: string) {
+    pendingPrestartRef.current = true;
+    setPool((prev) => {
+      if (prev.length === 0) {
+        pendingPrestartRef.current = false;
+        return prev;
+      }
+      const curIdx = prev.findIndex((d) => d.id === drawingId);
+      const nextIdx = pickRandomIndex(prev.length, curIdx);
+      setIndex(nextIdx);
+      if (prev[nextIdx]?.id === drawingId) {
+        pendingPrestartRef.current = false;
+        setPrestartLeft(PRESTART_SECONDS);
+      }
+      return prev;
+    });
+  }
+
   /** After Ok on a terminal result: advance pool and start next prestart if any. */
   function dismissResultAndContinue() {
     if (!result || result.kind === "wrong") return;
     const drawingId = current?.id;
     const kind = result.kind;
 
+    clearPassTimer();
     setResult(null);
     setRoundActive(false);
     setGuess("");
     dismissWrong();
 
-    if (kind === "pass" && drawingId) {
-      pendingPrestartRef.current = true;
-      setPool((prev) => {
-        if (prev.length === 0) {
-          pendingPrestartRef.current = false;
-          return prev;
-        }
-        const curIdx = prev.findIndex((d) => d.id === drawingId);
-        const nextIdx = pickRandomIndex(prev.length, curIdx);
-        setIndex(nextIdx);
-        // Same id when pool size is 1 — force prestart without currentId change
-        if (prev[nextIdx]?.id === drawingId) {
-          pendingPrestartRef.current = false;
-          setPrestartLeft(PRESTART_SECONDS);
-        }
-        return prev;
-      });
+    if ((kind === "pass" || kind === "expired") && drawingId) {
+      deferDrawingAndContinue(drawingId);
       return;
     }
 
@@ -335,6 +368,7 @@ export function usePlaySession(onScored: () => void) {
         pendingPrestartRef.current = false;
         setIndex(0);
         setPrestartLeft(null);
+        setNeedsStartConfirm(false);
         return next;
       }
       setIndex(pickRandomIndex(next.length));
@@ -342,25 +376,39 @@ export function usePlaySession(onScored: () => void) {
     });
   }
 
+  dismissContinueRef.current = dismissResultAndContinue;
+
   useEffect(() => {
     if (!current || !roundActive || locked || !revealAnswer) return;
     if (expireHandledRef.current) return;
     if (!isAnswerFullyRevealed(revealAnswer, elapsedMs)) return;
     expireHandledRef.current = true;
-    const answer = revealAnswer;
     const drawingId = current.id;
     void api
       .expireDrawing(drawingId)
       .then((p) => {
-        updateCurrentProgress(p, answer);
+        updateCurrentProgress(p);
       })
       .catch(() => {
         /* still show local result */
       })
       .finally(() => {
-        setResult({ kind: "expired", answer });
+        setResult({ kind: "expired" });
       });
   }, [current, roundActive, locked, revealAnswer, elapsedMs]);
+
+  useEffect(() => {
+    if (result?.kind !== "pass") {
+      clearPassTimer();
+      return;
+    }
+    clearPassTimer();
+    passTimerRef.current = window.setTimeout(() => {
+      passTimerRef.current = null;
+      dismissContinueRef.current();
+    }, PASS_OVERLAY_MS);
+    return () => clearPassTimer();
+  }, [result]);
 
   function dismissWrong() {
     if (wrongTimerRef.current != null) {
@@ -450,6 +498,7 @@ export function usePlaySession(onScored: () => void) {
     startBusy,
     prestartLeft,
     hasRequestedImage,
+    needsStartConfirm,
     awaitingImage,
     awaitingMehet,
     elapsedMs,

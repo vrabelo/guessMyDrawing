@@ -3,7 +3,7 @@ import { GameDialog } from "../game/GameDialog";
 export type ResultOverlayState =
   | { kind: "success"; points: number; elapsedMs: number }
   | { kind: "failure" }
-  | { kind: "expired"; answer: string }
+  | { kind: "expired" }
   | { kind: "wrong"; guess: string }
   | { kind: "pass" }
   | null;
@@ -83,7 +83,11 @@ export function ResultOverlay({
         open
         title="Idő lejárt"
         tone="danger"
-        body={<p>A teljes megfejtés: „{result.answer}”</p>}
+        body={
+          <p>
+            Nem sikerült megfejteni időben. A kép később újra előjöhet.
+          </p>
+        }
         primaryLabel="Ok"
         onPrimary={() => onContinue?.()}
         ariaLabel="Idő lejárt"

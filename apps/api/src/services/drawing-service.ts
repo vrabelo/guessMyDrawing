@@ -68,6 +68,19 @@ export class DrawingService {
     return updated!;
   }
 
+  /** Letter-timeout: clear the round so the tipper can try again later. */
+  private async resetAfterExpire(
+    prog: UserDrawingProgress
+  ): Promise<UserDrawingProgress> {
+    const updated = await this.progress.update(prog.id, {
+      status: "in_progress",
+      attemptsUsed: 0,
+      hintsRevealed: [false],
+      guessStartedAt: 0,
+    });
+    return updated!;
+  }
+
   /** Start / resume the guess timer when tipper clicks Mehet. */
   async startViewing(
     userId: string,
@@ -78,7 +91,7 @@ export class DrawingService {
       return null;
     }
     let prog = await this.progress.find(userId, drawingId);
-    if (prog?.status === "solved" || prog?.status === "expired") {
+    if (prog?.status === "solved") {
       const pub = await this.toPublic(drawing);
       return this.withProgress(
         pub,
@@ -86,7 +99,9 @@ export class DrawingService {
         drawing.name
       );
     }
-    if (prog?.status === "failed") {
+    if (prog?.status === "expired") {
+      prog = await this.resetAfterExpire(prog);
+    } else if (prog?.status === "failed") {
       prog = await this.reopenFailedForRetry(prog);
     } else {
       prog = await this.progress.ensureInProgress(userId, drawingId);
@@ -125,7 +140,7 @@ export class DrawingService {
     return { answer: drawing.name };
   }
 
-  /** Full letter reveal timed out — puzzle leaves the tipper's pool. */
+  /** Full letter reveal timed out — reset so the tipper can retry later. */
   async expireRound(
     userId: string,
     drawingId: string
@@ -138,13 +153,10 @@ export class DrawingService {
     if (!prog) {
       prog = await this.progress.ensureInProgress(userId, drawingId);
     }
-    if (prog.status === "solved" || prog.status === "expired") {
+    if (prog.status === "solved") {
       return this.normalizeProgress(prog);
     }
-    const updated = await this.progress.update(prog.id, {
-      status: "expired",
-    });
-    return this.normalizeProgress(updated!);
+    return this.normalizeProgress(await this.resetAfterExpire(prog));
   }
 
   private assertPublishableMeta(input: {
@@ -171,9 +183,9 @@ export class DrawingService {
   async listAvailable(userId: string): Promise<AvailableDrawing[]> {
     const all = await this.drawings.findAll();
     const progresses = await this.progress.findAllForUser(userId);
-    const solvedOrExpired = new Set(
+    const solved = new Set(
       progresses
-        .filter((p) => p.status === "solved" || p.status === "expired")
+        .filter((p) => p.status === "solved")
         .map((p) => p.drawingId)
     );
     const byDrawing = new Map(progresses.map((p) => [p.drawingId, p]));
@@ -181,7 +193,7 @@ export class DrawingService {
     const others = all
       .filter(
         (d) =>
-          isPublished(d) && d.userId !== userId && !solvedOrExpired.has(d.id)
+          isPublished(d) && d.userId !== userId && !solved.has(d.id)
       )
       .sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
 
@@ -191,6 +203,8 @@ export class DrawingService {
       let prog = byDrawing.get(d.id) ?? null;
       if (prog?.status === "failed") {
         prog = await this.reopenFailedForRetry(prog);
+      } else if (prog?.status === "expired") {
+        prog = await this.resetAfterExpire(prog);
       }
       result.push(
         this.withProgress(pub, prog ? this.normalizeProgress(prog) : null)
@@ -210,6 +224,8 @@ export class DrawingService {
     let prog = await this.progress.find(userId, drawingId);
     if (prog?.status === "failed") {
       prog = await this.reopenFailedForRetry(prog);
+    } else if (prog?.status === "expired") {
+      prog = await this.resetAfterExpire(prog);
     }
     const pub = await this.toPublic(drawing);
     const answer = prog?.status === "solved" ? drawing.name : undefined;
