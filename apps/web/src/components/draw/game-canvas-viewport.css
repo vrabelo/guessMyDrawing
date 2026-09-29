@@ -8,6 +8,8 @@
 }
 
 .game-canvas-viewport-host {
+  position: relative;
+  z-index: 2;
   container-type: size;
   display: grid;
   flex: 1 1 auto;
@@ -72,6 +74,8 @@
 }
 
 .paint-canvas-root {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   width: 100%;
