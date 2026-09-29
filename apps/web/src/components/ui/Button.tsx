@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "outline";
 
 type ButtonProps = {
   label: ReactNode;
@@ -16,6 +16,8 @@ const variantClass: Record<Variant, string> = {
     "bg-[var(--surface)] text-[var(--ink)] border-[var(--border)] hover:border-[var(--border-hover)] hover:bg-[var(--panel-elevated)]",
   ghost:
     "bg-transparent text-[var(--muted)] border-transparent hover:bg-white/[0.06] hover:text-[var(--ink)]",
+  outline:
+    "bg-transparent text-[var(--accent)] border-[var(--accent)] hover:bg-[var(--accent-muted)] hover:border-[var(--accent-hover)] shadow-none",
 };
 
 export function Button({

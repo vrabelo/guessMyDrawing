@@ -1,109 +1,110 @@
-import { Check, X } from "lucide-react";
+import { GameDialog } from "../game/GameDialog";
 
 export type ResultOverlayState =
-  | { kind: "success"; points: number }
+  | { kind: "success"; points: number; elapsedMs: number }
   | { kind: "failure" }
   | { kind: "expired"; answer: string }
   | { kind: "wrong"; guess: string }
+  | { kind: "pass" }
   | null;
 
 type ResultOverlayProps = {
   result: ResultOverlayState;
   onDismissWrong?: () => void;
+  /** Ok on terminal outcomes (success / failure / expired / pass). */
+  onContinue?: () => void;
 };
 
-export function ResultOverlay({ result, onDismissWrong }: ResultOverlayProps) {
+function formatPoints(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(".", ",");
+}
+
+function formatSeconds(ms: number): string {
+  const s = Math.max(0, ms / 1000);
+  return Number.isInteger(s) ? String(s) : s.toFixed(1).replace(".", ",");
+}
+
+export function ResultOverlay({
+  result,
+  onDismissWrong,
+  onContinue,
+}: ResultOverlayProps) {
   if (!result) return null;
 
-  const success = result.kind === "success";
-  const wrong = result.kind === "wrong";
-  const failure = result.kind === "failure";
-  const expired = result.kind === "expired";
+  if (result.kind === "wrong") {
+    return (
+      <GameDialog
+        open
+        title="Rossz tipp"
+        tone="danger"
+        body={<p>„{result.guess}” nem a megfejtés.</p>}
+        primaryLabel="Rendben"
+        onPrimary={() => onDismissWrong?.()}
+        ariaLabel="Rossz tipp"
+      />
+    );
+  }
+
+  if (result.kind === "success") {
+    return (
+      <GameDialog
+        open
+        title="Eltaláltad!"
+        tone="success"
+        body={
+          <p>
+            {formatSeconds(result.elapsedMs)} másodperc alatt{" "}
+            {formatPoints(result.points)} pont jóváírva.
+          </p>
+        }
+        primaryLabel="Ok"
+        onPrimary={() => onContinue?.()}
+        ariaLabel="Sikeres tipp"
+      />
+    );
+  }
+
+  if (result.kind === "pass") {
+    return (
+      <GameDialog
+        open
+        title="Passz"
+        body={<p>Átugrottad ezt a képet. Később újra előjöhet.</p>}
+        primaryLabel="Ok"
+        onPrimary={() => onContinue?.()}
+        ariaLabel="Passz"
+      />
+    );
+  }
+
+  if (result.kind === "expired") {
+    return (
+      <GameDialog
+        open
+        title="Idő lejárt"
+        tone="danger"
+        body={<p>A teljes megfejtés: „{result.answer}”</p>}
+        primaryLabel="Ok"
+        onPrimary={() => onContinue?.()}
+        ariaLabel="Idő lejárt"
+      />
+    );
+  }
 
   return (
-    <div
-      className={[
-        "result-overlay absolute inset-0 z-30 flex items-center justify-center p-4",
-        wrong ? "result-overlay--dismissible" : "",
-      ].join(" ")}
-      role="dialog"
-      aria-live="polite"
-      aria-label={
-        success
-          ? "Sikeres tipp"
-          : wrong
-            ? "Rossz tipp"
-            : expired
-              ? "Idő lejárt"
-              : "Sikertelen tipp"
-      }
-      onClick={wrong ? onDismissWrong : undefined}
-    >
-      <div
-        className={[
-          "result-overlay__card flex max-w-sm flex-col items-center gap-3 px-7 py-6 text-center",
-          success
-            ? "result-overlay__card--success"
-            : "result-overlay__card--failure",
-        ].join(" ")}
-        onClick={wrong ? (e) => e.stopPropagation() : undefined}
-      >
-        <span
-          className={[
-            "flex h-14 w-14 items-center justify-center rounded-full",
-            success
-              ? "bg-emerald-500/20 text-emerald-400"
-              : "bg-red-500/20 text-red-400",
-          ].join(" ")}
-        >
-          {success ? (
-            <Check size={32} strokeWidth={2.75} />
-          ) : (
-            <X size={32} strokeWidth={2.75} />
-          )}
-        </span>
-        <p className="text-base font-semibold leading-snug text-[var(--ink)]">
-          {success ? (
-            <>
-              Gratulálunk!{" "}
-              <span className="text-emerald-400">
-                {Number.isInteger(result.points)
-                  ? result.points
-                  : result.points.toFixed(1).replace(".", ",")}
-              </span>{" "}
-              pontot szereztél
-            </>
-          ) : wrong ? (
-            <>
-              <span className="block text-lg text-red-300">Rossz tipp</span>
-              <span className="mt-1 block text-[var(--muted-strong)]">
-                „{result.guess}” nem a megfejtés.
-              </span>
-            </>
-          ) : expired ? (
-            <>
-              <span className="block text-lg text-red-300">Idő lejárt</span>
-              <span className="mt-1 block text-[var(--muted-strong)]">
-                A teljes megfejtés: „{result.answer}”
-              </span>
-            </>
-          ) : failure ? (
-            <>
-              Sajnos nem talált. Következő körben csak fél pontot kaphatsz a
-              képért.
-            </>
-          ) : null}
+    <GameDialog
+      open
+      title="Nem talált"
+      tone="danger"
+      body={
+        <p>
+          Sajnos nem talált. Következő körben csak fél pontot kaphatsz a
+          képért.
         </p>
-        {wrong ? (
-          <button
-            type="button"
-            className="mt-1 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm font-medium text-[var(--ink)] hover:bg-white/10"
-            onClick={onDismissWrong}
-          >
-            Rendben
-          </button>
-        ) : null}
-      </div>
-    </div>
+      }
+      primaryLabel="Ok"
+      onPrimary={() => onContinue?.()}
+      ariaLabel="Sikertelen tipp"
+    />
   );
 }

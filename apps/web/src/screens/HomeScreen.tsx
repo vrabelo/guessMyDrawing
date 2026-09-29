@@ -3,10 +3,9 @@ import "../components/play/play-screen.css";
 
 type HomeScreenProps = {
   onChoosePlay: () => void;
-  onChooseDraw: () => void;
 };
 
-export function HomeScreen({ onChoosePlay, onChooseDraw }: HomeScreenProps) {
+export function HomeScreen({ onChoosePlay }: HomeScreenProps) {
   return (
     <div className="home-screen">
       <div className="game-card max-h-full w-full max-w-2xl overflow-y-auto p-6 sm:p-8">
@@ -40,9 +39,9 @@ export function HomeScreen({ onChoosePlay, onChooseDraw }: HomeScreenProps) {
               következő; ha minden betű kiderül, a feladvány lejár.
             </li>
             <li>
-              A kép betöltése után a{" "}
-              <strong className="text-[var(--ink)]">Mehet!</strong> gombbal
-              indul a visszaszámláló.
+              A{" "}
+              <strong className="text-[var(--ink)]">Kérem a képet!</strong>{" "}
+              gombbal indul a 3 másodperces visszaszámláló.
             </li>
           </ul>
         </section>
@@ -66,19 +65,7 @@ export function HomeScreen({ onChoosePlay, onChooseDraw }: HomeScreenProps) {
         </section>
 
         <div className="home-screen__cta">
-          <span className="home-screen__cta-label">Játék indítása:</span>
-          <div className="home-screen__cta-buttons">
-            <Button
-              label="Rajzolok"
-              variant="secondary"
-              onClick={onChooseDraw}
-            />
-            <Button
-              label="Kitalálom"
-              variant="primary"
-              onClick={onChoosePlay}
-            />
-          </div>
+          <Button label="Ok" variant="outline" onClick={onChoosePlay} />
         </div>
       </div>
     </div>

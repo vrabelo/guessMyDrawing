@@ -29,6 +29,7 @@ type PuzzleBoardProps = {
   onPass: () => void;
   result: ResultOverlayState;
   onDismissWrong?: () => void;
+  onContinueResult?: () => void;
   footer?: ReactNode;
 };
 
@@ -56,12 +57,14 @@ export function PuzzleBoard({
   onPass,
   result,
   onDismissWrong,
+  onContinueResult,
   footer,
 }: PuzzleBoardProps) {
   const roundOver =
     result?.kind === "success" ||
     result?.kind === "failure" ||
-    result?.kind === "expired";
+    result?.kind === "expired" ||
+    result?.kind === "pass";
   const awaitingCountdown = prestartLeft != null;
   const showImage = Boolean(src);
   const showGuess =
@@ -155,7 +158,11 @@ export function PuzzleBoard({
         </div>
       ) : null}
 
-      <ResultOverlay result={result} onDismissWrong={onDismissWrong} />
+      <ResultOverlay
+        result={result}
+        onDismissWrong={onDismissWrong}
+        onContinue={onContinueResult}
+      />
       {footer}
     </div>
   );

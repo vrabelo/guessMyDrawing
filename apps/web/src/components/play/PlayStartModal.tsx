@@ -1,4 +1,4 @@
-import { Button } from "../ui/Button";
+import { GameDialog } from "../game/GameDialog";
 
 type PlayStartModalProps = {
   open: boolean;
@@ -11,21 +11,15 @@ export function PlayStartModal({
   busy = false,
   onStart,
 }: PlayStartModalProps) {
-  if (!open) return null;
-
   return (
-    <div
-      className="play-start-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Kép kérése"
-    >
-      <Button
-        label="Kérem a képet!"
-        variant="primary"
-        disabled={busy}
-        onClick={onStart}
-      />
-    </div>
+    <GameDialog
+      open={open}
+      title="Képes feladvány"
+      body={<p>Kérj egy képet a tippeléshez.</p>}
+      primaryLabel="Kérem a képet!"
+      primaryDisabled={busy}
+      onPrimary={onStart}
+      ariaLabel="Kép kérése"
+    />
   );
 }

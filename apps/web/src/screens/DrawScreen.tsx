@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type { UserStatsResponse } from "@tipp-my-draw/shared";
 import { PaintCanvas } from "../components/paint/PaintCanvas";
 import { MyDrawingsPanel } from "../components/draw/MyDrawingsPanel";
 import { SaveDrawingModal } from "../components/draw/SaveDrawingModal";
@@ -16,12 +17,16 @@ import "../components/draw/draw-screen.css";
 type DrawScreenProps = {
   onSaved: () => void;
   onModeChange: (mode: AppMode) => void;
+  alias: string;
+  stats: UserStatsResponse | null;
   onBindDiscard?: (discard: () => void) => void;
 };
 
 export function DrawScreen({
   onSaved,
   onModeChange,
+  alias,
+  stats,
   onBindDiscard,
 }: DrawScreenProps) {
   const draw = useDrawSession(onSaved);
@@ -111,12 +116,13 @@ export function DrawScreen({
 
       <div className="draw-screen__side">
         <MyDrawingsPanel
+          alias={alias}
+          stats={stats}
           drawings={publishedOnly}
           selectedId={draw.selectedId}
           search={draw.search}
           onSearchChange={draw.setSearch}
           onSelect={(d) => void draw.loadDrawing(d)}
-          onNew={draw.startNew}
           loading={draw.loadingList}
         />
       </div>

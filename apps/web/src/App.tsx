@@ -80,10 +80,7 @@ export default function App() {
 
       <div className={gridClass}>
         {view === "home" ? (
-          <HomeScreen
-            onChoosePlay={() => setView("play")}
-            onChooseDraw={() => setView("draw")}
-          />
+          <HomeScreen onChoosePlay={() => setView("play")} />
         ) : view === "play" ? (
           <PlayScreen
             onScored={() => void refreshSideData()}
@@ -96,6 +93,8 @@ export default function App() {
           <DrawScreen
             onSaved={() => void refreshSideData()}
             onModeChange={handleModeChange}
+            alias={user.alias}
+            stats={stats}
             onBindDiscard={(fn) => {
               discardDrawRef.current = fn;
             }}

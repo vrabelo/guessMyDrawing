@@ -37,13 +37,26 @@ const emptyMeta = (): SaveDrawingMeta => ({
   name: "",
 });
 
-function guidedMeta(category?: ThemeCategoryId): {
+function usedThemeNames(drawings: OwnedDrawing[]): Set<string> {
+  return new Set(
+    drawings
+      .filter((d) => d.published)
+      .map((d) => d.name.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function guidedMeta(
+  category?: ThemeCategoryId,
+  exclude?: ReadonlySet<string>
+): {
   meta: SaveDrawingMeta;
   category: ThemeCategoryId;
-} {
+} | null {
   const entry = category
-    ? pickRandomFromCategory(category)
-    : pickRandomTheme();
+    ? pickRandomFromCategory(category, exclude)
+    : pickRandomTheme(undefined, exclude);
+  if (!entry) return null;
   return {
     category: entry.category,
     meta: {
@@ -65,7 +78,10 @@ export function useDrawSession(onSaved: () => void) {
   const [drawMode, setDrawMode] = useState<DrawMode>("guided");
   const [themePick, setThemePick] = useState<ThemePick>("auto");
   const [promptLocked, setPromptLocked] = useState(true);
-  const initialGuided = useRef(guidedMeta()).current;
+  const initialGuided = useRef(guidedMeta() ?? {
+    category: "allatok" as ThemeCategoryId,
+    meta: emptyMeta(),
+  }).current;
   const [meta, setMeta] = useState<SaveDrawingMeta>(initialGuided.meta);
   const [activeCategory, setActiveCategory] = useState<ThemeCategoryId>(
     initialGuided.category
@@ -140,13 +156,23 @@ export function useDrawSession(onSaved: () => void) {
       setDrawMode("free");
       setPromptLocked(false);
       setMeta(emptyMeta());
+      setError("");
       return;
     }
     setDrawMode("guided");
-    const next = pick === "auto" ? guidedMeta() : guidedMeta(pick);
+    const exclude = usedThemeNames(mine);
+    const next =
+      pick === "auto"
+        ? guidedMeta(undefined, exclude)
+        : guidedMeta(pick, exclude);
+    if (!next) {
+      setError("Nincs több elérhető téma. Válassz más kategóriát vagy szabad rajzot.");
+      return;
+    }
     setMeta(next.meta);
     setActiveCategory(next.category);
     setPromptLocked(true);
+    setError("");
   }
 
   function resetToNewDrawing(pick: ThemePick = themePick) {

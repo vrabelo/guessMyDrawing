@@ -13,7 +13,6 @@ import {
 import { api, createDrawingsSocket } from "../../api/client";
 import type { ResultOverlayState } from "./ResultOverlay";
 import {
-  EXPIRE_OVERLAY_MS,
   MAX_ATTEMPTS,
   PRESTART_SECONDS,
   WRONG_OVERLAY_MS,
@@ -140,7 +139,8 @@ export function usePlaySession(onScored: () => void) {
     status === "expired" ||
     result?.kind === "success" ||
     result?.kind === "failure" ||
-    result?.kind === "expired";
+    result?.kind === "expired" ||
+    result?.kind === "pass";
   const locked = roundEnded || !roundActive;
   const priorFailure = Boolean(progress?.priorFailure);
 
@@ -295,15 +295,51 @@ export function usePlaySession(onScored: () => void) {
     );
   }
 
-  function removeFromPool(drawingId: string) {
-    setPool((prev) => {
-      const next = prev.filter((d) => d.id !== drawingId);
-      setIndex(next.length === 0 ? 0 : pickRandomIndex(next.length));
-      return next;
-    });
+  /** After Ok on a terminal result: advance pool and start next prestart if any. */
+  function dismissResultAndContinue() {
+    if (!result || result.kind === "wrong") return;
+    const drawingId = current?.id;
+    const kind = result.kind;
+
     setResult(null);
     setRoundActive(false);
-    setPrestartLeft(null);
+    setGuess("");
+    dismissWrong();
+
+    if (kind === "pass" && drawingId) {
+      pendingPrestartRef.current = true;
+      setPool((prev) => {
+        if (prev.length === 0) {
+          pendingPrestartRef.current = false;
+          return prev;
+        }
+        const curIdx = prev.findIndex((d) => d.id === drawingId);
+        const nextIdx = pickRandomIndex(prev.length, curIdx);
+        setIndex(nextIdx);
+        // Same id when pool size is 1 — force prestart without currentId change
+        if (prev[nextIdx]?.id === drawingId) {
+          pendingPrestartRef.current = false;
+          setPrestartLeft(PRESTART_SECONDS);
+        }
+        return prev;
+      });
+      return;
+    }
+
+    if (!drawingId) return;
+
+    pendingPrestartRef.current = true;
+    setPool((prev) => {
+      const next = prev.filter((d) => d.id !== drawingId);
+      if (next.length === 0) {
+        pendingPrestartRef.current = false;
+        setIndex(0);
+        setPrestartLeft(null);
+        return next;
+      }
+      setIndex(pickRandomIndex(next.length));
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -319,11 +355,10 @@ export function usePlaySession(onScored: () => void) {
         updateCurrentProgress(p, answer);
       })
       .catch(() => {
-        /* still remove locally */
+        /* still show local result */
       })
       .finally(() => {
         setResult({ kind: "expired", answer });
-        window.setTimeout(() => removeFromPool(drawingId), EXPIRE_OVERLAY_MS);
       });
   }, [current, roundActive, locked, revealAnswer, elapsedMs]);
 
@@ -350,7 +385,7 @@ export function usePlaySession(onScored: () => void) {
     if (!current || locked) return;
     dismissWrong();
     setGuess("");
-    removeFromPool(current.id);
+    setResult({ kind: "pass" });
   }
 
   async function handleReveal() {
@@ -378,9 +413,9 @@ export function usePlaySession(onScored: () => void) {
         setResult({
           kind: "success",
           points: res.pointsAwarded ?? 0,
+          elapsedMs,
         });
         onScored();
-        window.setTimeout(() => removeFromPool(current.id), 2200);
         return;
       }
 
@@ -390,7 +425,6 @@ export function usePlaySession(onScored: () => void) {
           dismissWrong();
           setResult({ kind: "failure" });
           onScored();
-          window.setTimeout(() => removeFromPool(current.id), 2800);
         } else {
           showWrongOverlay(submitted);
         }
@@ -430,5 +464,6 @@ export function usePlaySession(onScored: () => void) {
     handleGuess,
     setGuess,
     dismissWrong,
+    dismissResultAndContinue,
   };
 }

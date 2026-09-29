@@ -30,7 +30,7 @@ export function DrawIntroModal({ open, onConfirm }: DrawIntroModalProps) {
           véletlenszerű feladvány között.
         </p>
         <p className="mb-4 text-sm leading-relaxed text-[var(--muted-strong)]">
-          Az Oké után egy ablakban indíthatod a rajzolást. Új rajzzal a számláló
+          Az Oké után egy ablakban indíthatod a rajzolást. Új témával a számláló
           és a téma is újraindul. Kategóriát vagy szabad rajzot választhatsz — 2
           perced van; később nem folytatható.
         </p>
@@ -45,7 +45,7 @@ export function DrawIntroModal({ open, onConfirm }: DrawIntroModalProps) {
         </label>
         <Button
           label="Oké"
-          variant="primary"
+          variant="outline"
           fullWidth
           onClick={() => onConfirm(dontShowAgain)}
         />

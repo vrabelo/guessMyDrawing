@@ -128,7 +128,7 @@ export function SaveDrawingModal({
           />
           <Button
             label="Publikálás"
-            variant="primary"
+            variant="outline"
             onClick={publish}
             disabled={busy}
             className="flex-1"

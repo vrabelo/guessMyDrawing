@@ -87,6 +87,7 @@ export function PlayScreen({
           onPass={session.handlePass}
           result={session.result}
           onDismissWrong={session.dismissWrong}
+          onContinueResult={session.dismissResultAndContinue}
         />
       </>
     );

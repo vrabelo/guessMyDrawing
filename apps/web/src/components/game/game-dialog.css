@@ -1,0 +1,76 @@
+.game-dialog {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(9, 9, 11, 0.72);
+  pointer-events: auto;
+}
+
+.game-dialog__card {
+  width: 100%;
+  max-width: 22rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  padding: 1.25rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.game-dialog__card--success {
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.game-dialog__card--danger {
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.game-dialog__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.game-dialog__body {
+  margin: 0 0 1.15rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted-strong);
+}
+
+.game-dialog__body p {
+  margin: 0 0 0.4rem;
+}
+
+.game-dialog__body p:last-child {
+  margin-bottom: 0;
+}
+
+.game-dialog__actions {
+  display: flex;
+  width: 100%;
+}
+
+.game-dialog__actions--dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.game-dialog__actions--dual > button {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Fixed overlays that sit above the whole screen (save / intro) */
+.game-dialog--fixed {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}

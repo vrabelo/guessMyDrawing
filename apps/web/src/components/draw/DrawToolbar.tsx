@@ -38,7 +38,7 @@ export function DrawToolbar({
         disabled={busy || mustSave}
         onClick={onNewDrawing}
       >
-        Új rajz
+        Új téma
       </button>
       <select
         className={[

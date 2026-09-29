@@ -272,15 +272,31 @@ export function listThemeCategories(): ThemeCategoryId[] {
   return [...THEME_CATEGORY_IDS];
 }
 
-export function pickRandomTheme(category?: ThemeCategoryId): ThemeEntry {
-  const cat =
-    category ??
-    THEME_CATEGORY_IDS[Math.floor(Math.random() * THEME_CATEGORY_IDS.length)]!;
-  const words = THEMES_BY_CATEGORY[cat];
-  const word = words[Math.floor(Math.random() * words.length)]!;
-  return { category: cat, word, label: THEME_CATEGORY_LABELS[cat] };
+export function pickRandomTheme(
+  category?: ThemeCategoryId,
+  exclude?: ReadonlySet<string>
+): ThemeEntry | null {
+  const normalize = (w: string) => w.trim().toLowerCase();
+  const excluded = exclude ?? new Set<string>();
+
+  const categories = category
+    ? [category]
+    : [...THEME_CATEGORY_IDS].sort(() => Math.random() - 0.5);
+
+  for (const cat of categories) {
+    const words = THEMES_BY_CATEGORY[cat].filter(
+      (w) => !excluded.has(normalize(w))
+    );
+    if (words.length === 0) continue;
+    const word = words[Math.floor(Math.random() * words.length)]!;
+    return { category: cat, word, label: THEME_CATEGORY_LABELS[cat] };
+  }
+  return null;
 }
 
-export function pickRandomFromCategory(category: ThemeCategoryId): ThemeEntry {
-  return pickRandomTheme(category);
+export function pickRandomFromCategory(
+  category: ThemeCategoryId,
+  exclude?: ReadonlySet<string>
+): ThemeEntry | null {
+  return pickRandomTheme(category, exclude);
 }

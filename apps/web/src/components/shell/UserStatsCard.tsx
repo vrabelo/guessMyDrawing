@@ -3,6 +3,8 @@ import type { UserStatsResponse } from "@tipp-my-draw/shared";
 type UserStatsCardProps = {
   alias: string;
   stats: UserStatsResponse | null;
+  /** Tip page (default) or draw-focused stats. */
+  mode?: "play" | "draw";
 };
 
 function StatRow({
@@ -35,7 +37,37 @@ function formatRank(rank: number | null): string {
   return rank == null ? "—" : `${rank}.`;
 }
 
-export function UserStatsCard({ alias, stats }: UserStatsCardProps) {
+export function UserStatsCard({
+  alias,
+  stats,
+  mode = "play",
+}: UserStatsCardProps) {
+  if (mode === "draw") {
+    return (
+      <section className="game-card shrink-0 px-4 py-4">
+        <p className="mb-3 truncate text-base font-semibold text-[var(--ink)]">
+          {alias}
+        </p>
+
+        <div className="divide-y divide-white/[0.06]">
+          <StatRow
+            label="Rajzaid száma"
+            value={stats?.drawingsCount ?? "—"}
+          />
+          <StatRow
+            label="Rajzpontjaid"
+            value={stats?.drawPoints ?? "—"}
+            accent
+          />
+          <StatRow
+            label="Rajz helyezés"
+            value={formatRank(stats?.ranks.creator ?? null)}
+          />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="game-card shrink-0 px-4 py-4">
       <p className="mb-3 truncate text-base font-semibold text-[var(--ink)]">
