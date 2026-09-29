@@ -4,6 +4,7 @@ type DrawStartModalProps = {
   open: boolean;
   themeLabel: string;
   busy?: boolean;
+  onNewTheme: () => void;
   onStart: () => void;
 };
 
@@ -11,6 +12,7 @@ export function DrawStartModal({
   open,
   themeLabel,
   busy = false,
+  onNewTheme,
   onStart,
 }: DrawStartModalProps) {
   if (!open) return null;
@@ -35,13 +37,20 @@ export function DrawStartModal({
         <p className="draw-start-overlay__text draw-start-overlay__text--last">
           Két perced lesz megrajzolni.
         </p>
-        <Button
-          label="Indulhat"
-          variant="primary"
-          fullWidth
-          disabled={busy}
-          onClick={onStart}
-        />
+        <div className="draw-start-overlay__actions">
+          <Button
+            label="Új téma"
+            variant="secondary"
+            disabled={busy}
+            onClick={onNewTheme}
+          />
+          <Button
+            label="Indulhat"
+            variant="primary"
+            disabled={busy}
+            onClick={onStart}
+          />
+        </div>
       </div>
     </div>
   );

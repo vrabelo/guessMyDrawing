@@ -99,6 +99,7 @@ export function DrawScreen({
             open={draw.showStartModal}
             themeLabel={themeDisplay}
             busy={draw.busy}
+            onNewTheme={draw.rerollTheme}
             onStart={draw.startClock}
           />
         </div>

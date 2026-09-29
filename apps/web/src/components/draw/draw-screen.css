@@ -258,6 +258,18 @@
   margin-bottom: 1.15rem;
 }
 
+.draw-start-overlay__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.draw-start-overlay__actions > button {
+  width: 100%;
+  min-width: 0;
+}
+
 .draw-screen__error {
   margin-top: 0.5rem;
   font-size: 0.875rem;

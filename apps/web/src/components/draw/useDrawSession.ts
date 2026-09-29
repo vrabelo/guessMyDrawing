@@ -180,6 +180,13 @@ export function useDrawSession(onSaved: () => void) {
     setNow(Date.now());
   }
 
+  /** Re-roll prompt while start modal is open (does not start the clock). */
+  function rerollTheme() {
+    if (selected?.published || mustSave || busy) return;
+    if (drawStartedAt != null) return;
+    applyThemePick(themePick);
+  }
+
   function dismissIntro(dontShowAgain = false) {
     if (dontShowAgain) persistHideDrawIntro();
     setIntroOpen(false);
@@ -289,6 +296,7 @@ export function useDrawSession(onSaved: () => void) {
     setThemePickAndRoll,
     startNew,
     startClock,
+    rerollTheme,
     dismissIntro,
     loadDrawing,
     persist,
