@@ -30,11 +30,17 @@
 }
 
 .game-canvas-viewport--paper {
+  /* Solid drawing surface — never translucent */
   background: #ffffff;
+  opacity: 1;
+  isolation: isolate;
 }
 
 .game-canvas-viewport--play {
+  /* Solid puzzle paper — never translucent */
   background: #f4f4f5;
+  opacity: 1;
+  isolation: isolate;
 }
 
 .game-canvas-viewport__surface {
@@ -54,11 +60,15 @@
   max-width: none;
   aspect-ratio: unset;
   object-fit: unset;
+  background: #ffffff;
+  opacity: 1;
 }
 
 .game-canvas-viewport img.game-canvas-viewport__surface {
   object-fit: contain;
   object-position: center;
+  opacity: 1;
+  background: #f4f4f5;
 }
 
 .paint-canvas-root {

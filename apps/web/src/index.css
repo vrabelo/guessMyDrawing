@@ -179,18 +179,30 @@ textarea {
 }
 
 .canvas-stage--portrait {
-  background: rgba(24, 24, 27, 0.85);
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(24, 24, 27, 0.45) 45%,
+    rgba(9, 9, 11, 0.58) 100%
+  );
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 0 56px rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
     0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
 .canvas-stage--landscape {
-  background: rgba(24, 24, 27, 0.9);
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(24, 24, 27, 0.45) 45%,
+    rgba(9, 9, 11, 0.58) 100%
+  );
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 0 64px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
     0 18px 48px rgba(0, 0, 0, 0.4);
 }
 
