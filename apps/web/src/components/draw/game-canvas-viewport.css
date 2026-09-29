@@ -1,0 +1,72 @@
+/* Shared 16:9 viewport — matches CANVAS_W×CANVAS_H (640×360) export */
+
+.draw-stage--fill.draw-screen__canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-canvas-viewport-host {
+  container-type: size;
+  display: grid;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+}
+
+.game-canvas-viewport {
+  position: relative;
+  box-sizing: border-box;
+  aspect-ratio: 16 / 9;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  height: min(100cqh, calc(100cqw * 9 / 16));
+  max-width: 100cqw;
+  max-height: 100cqh;
+  overflow: hidden;
+  border-radius: 1.1rem;
+}
+
+.game-canvas-viewport--paper {
+  background: #ffffff;
+}
+
+.game-canvas-viewport--play {
+  background: #f4f4f5;
+}
+
+.game-canvas-viewport__surface {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.game-canvas-viewport .canvas-paint {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: unset;
+  object-fit: unset;
+}
+
+.game-canvas-viewport img.game-canvas-viewport__surface {
+  object-fit: contain;
+  object-position: center;
+}
+
+.paint-canvas-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  gap: 0.5rem;
+}

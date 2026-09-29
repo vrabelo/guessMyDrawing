@@ -63,27 +63,36 @@ export function PuzzleBoard({
     result?.kind === "failure" ||
     result?.kind === "expired";
   const awaitingCountdown = prestartLeft != null;
-  const imageDimmed = awaitingCountdown || showStartModal;
+  const showImage = Boolean(src);
   const showGuess =
     !guessLocked &&
     !awaitingCountdown &&
     !showStartModal &&
     !roundOver &&
-    Boolean(src);
+    showImage;
 
   return (
-    <div className="canvas-stage canvas-stage--landscape draw-stage draw-stage--fill draw-screen__canvas play-board">
-      {src ? (
-        <img
-          src={src}
-          alt="Feladvány"
-          className={[
-            "canvas-stage__img",
-            imageDimmed ? "canvas-stage__img--awaiting" : "",
-          ].join(" ")}
-        />
+    <div
+      className={[
+        "draw-screen__canvas play-board",
+        showImage ? "play-board--puzzle" : "play-board--idle",
+      ].join(" ")}
+    >
+      {showImage ? (
+        <div className="game-canvas-viewport-host play-board__viewport-host">
+          <div className="game-canvas-viewport game-canvas-viewport--play">
+            <img
+              src={src!}
+              alt="Feladvány"
+              className="game-canvas-viewport__surface play-board__img"
+            />
+          </div>
+        </div>
       ) : (
-        <div className="canvas-stage__img canvas-stage__img--awaiting flex h-full w-full items-center justify-center bg-black/40" />
+        <div
+          className="play-board__placeholder"
+          aria-hidden={showStartModal}
+        />
       )}
 
       {showGuess ? (
@@ -114,8 +123,8 @@ export function PuzzleBoard({
         </div>
       ) : null}
 
-      {src && authorAlias ? (
-        <div className="pointer-events-none absolute right-2 bottom-2 z-10 rounded-full bg-black/35 px-2.5 py-1 backdrop-blur-md">
+      {showImage && authorAlias && !showStartModal && !awaitingCountdown ? (
+        <div className="pointer-events-none absolute right-2 bottom-2 z-10 rounded-full bg-black/35 px-2.5 py-1">
           <p className="text-[11px] font-medium tracking-wide text-white/85">
             @{authorAlias} · {index + 1}/{total}
           </p>

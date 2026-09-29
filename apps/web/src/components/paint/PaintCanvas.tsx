@@ -109,9 +109,11 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle, PaintCanvasProps>(
   function getPos(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) * W) / rect.width;
+    const y = ((e.clientY - rect.top) * H) / rect.height;
     return {
-      x: ((e.clientX - rect.left) * W) / rect.width,
-      y: ((e.clientY - rect.top) * H) / rect.height,
+      x: Math.min(W, Math.max(0, x)),
+      y: Math.min(H, Math.max(0, y)),
     };
   }
 
@@ -305,7 +307,7 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle, PaintCanvasProps>(
   }
 
   return (
-    <div className="flex h-full w-full min-h-0 flex-col gap-2">
+    <div className="paint-canvas-root">
       {!readOnly ? (
         <PaintToolbar
           tool={tool}
@@ -323,21 +325,25 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle, PaintCanvasProps>(
           onClear={clear}
         />
       ) : null}
-      <canvas
-        ref={canvasRef}
-        width={W}
-        height={H}
-        className={[
-          "canvas-paint touch-none bg-white",
-          readOnly ? "canvas-paint--locked" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
-      />
+      <div className="game-canvas-viewport-host">
+        <div className="game-canvas-viewport game-canvas-viewport--paper">
+          <canvas
+            ref={canvasRef}
+            width={W}
+            height={H}
+            className={[
+              "canvas-paint game-canvas-viewport__surface touch-none bg-white",
+              readOnly ? "canvas-paint--locked" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerLeave={onPointerUp}
+          />
+        </div>
+      </div>
     </div>
   );
 });
