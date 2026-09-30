@@ -2,8 +2,11 @@
 
 .draw-screen {
   --game-col-gap: 1.25rem;
-  /* Toolbar row + margin-bottom + canvas top padding — aligns side stats with board top */
-  --game-side-offset: calc(var(--toolbar-btn-h) + 0.25rem + 0.5rem);
+  --game-below-toolbar-gap: 0.625rem; /* ~10px between toolbar row and board/side */
+  /* Toolbar row + margins + canvas top padding — aligns side stats with board top */
+  --game-side-offset: calc(
+    var(--toolbar-btn-h) + 0.25rem + var(--game-below-toolbar-gap) + 0.5rem
+  );
   grid-column: 1 / -1;
   display: grid;
   width: 100%;
@@ -51,7 +54,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.5rem 0.75rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: calc(0.25rem + var(--game-below-toolbar-gap));
   /* Match canvas stage horizontal inset so ModeToggle sits on board left edge */
   padding-inline: 0.5rem;
   width: 100%;
