@@ -8,13 +8,26 @@ import { AuthScreen } from "./screens/AuthScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import { PlayScreen } from "./screens/PlayScreen";
 import { DrawScreen } from "./screens/DrawScreen";
+import { AdminScreen } from "./screens/AdminScreen";
 import type { AppMode } from "./components/shell/ModeToggle";
 import { AppHeader } from "./components/shell/AppHeader";
 import "./components/shell/app-shell.css";
 
 type AppView = "home" | AppMode;
 
+const isAdminPath =
+  typeof window !== "undefined" &&
+  window.location.pathname.replace(/\/+$/, "") === "/admin";
+
 export default function App() {
+  if (isAdminPath) {
+    return <AdminScreen />;
+  }
+
+  return <PlayerApp />;
+}
+
+function PlayerApp() {
   const [user, setUser] = useState<{ id: string; alias: string } | null>(() =>
     getStoredUser()
   );

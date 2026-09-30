@@ -1,0 +1,86 @@
+.feedback-message {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  pointer-events: none;
+}
+
+.feedback-message__box {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 22rem;
+  border-radius: 1.35rem;
+  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  animation: feedbackMessageIn 0.22s ease-out;
+}
+
+.feedback-message__box--warning {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: linear-gradient(
+    165deg,
+    rgba(251, 191, 36, 0.14) 0%,
+    rgba(28, 20, 24, 0.96) 55%
+  );
+}
+
+.feedback-message__box--error {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: linear-gradient(
+    165deg,
+    rgba(248, 113, 113, 0.14) 0%,
+    rgba(28, 20, 24, 0.96) 55%
+  );
+}
+
+.feedback-message__box--info {
+  border-color: rgba(255, 92, 138, 0.4);
+  background: linear-gradient(
+    165deg,
+    rgba(255, 92, 138, 0.12) 0%,
+    rgba(28, 20, 24, 0.96) 55%
+  );
+}
+
+.feedback-message__title {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--highlight);
+}
+
+.feedback-message__box--error .feedback-message__title {
+  color: #fca5a5;
+}
+
+.feedback-message__box--info .feedback-message__title {
+  color: var(--accent);
+}
+
+.feedback-message__text {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 550;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+@keyframes feedbackMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

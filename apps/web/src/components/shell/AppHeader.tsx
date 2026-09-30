@@ -1,10 +1,14 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import { LogOut } from "lucide-react";
+import { FeedbackMessage } from "../ui/FeedbackMessage";
 
 type AppHeaderProps = {
   onGoHome: () => void;
   onLogout: () => void;
 };
+
+const SOCIAL_NOT_WIRED =
+  "Ez a gomb még nincs bekötve. A közösségi megosztás hamarosan érkezik.";
 
 function GitHubIcon() {
   return (
@@ -72,34 +76,57 @@ function IconCircle({
 }
 
 export function AppHeader({ onGoHome, onLogout }: AppHeaderProps) {
-  return (
-    <header className="relative flex shrink-0 items-center justify-between gap-4 px-1 py-1.5">
-      <div className="z-10 min-w-0 flex-1">
-        <h1 className="font-display text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
-          <button
-            type="button"
-            className="bg-gradient-to-r from-[var(--accent)] to-[var(--highlight)] bg-clip-text text-transparent cursor-pointer text-left"
-            onClick={onGoHome}
-          >
-            Találd ki mit rajzoltam
-          </button>
-        </h1>
-      </div>
+  const [socialNoticeOpen, setSocialNoticeOpen] = useState(false);
+  const [socialNoticeKey, setSocialNoticeKey] = useState(0);
 
-      <div className="z-10 flex flex-1 items-center justify-end gap-2.5">
-        <IconCircle href="https://github.com" label="GitHub">
-          <GitHubIcon />
-        </IconCircle>
-        <IconCircle href="https://www.linkedin.com" label="LinkedIn">
-          <LinkedInIcon />
-        </IconCircle>
-        <IconCircle href="https://x.com" label="X / Twitter">
-          <XIcon />
-        </IconCircle>
-        <IconCircle label="Kijelentkezés" onClick={onLogout}>
-          <LogOut size={20} strokeWidth={2} />
-        </IconCircle>
-      </div>
-    </header>
+  const showSocialNotice = useCallback(() => {
+    setSocialNoticeOpen(true);
+    setSocialNoticeKey((k) => k + 1);
+  }, []);
+
+  const hideSocialNotice = useCallback(() => {
+    setSocialNoticeOpen(false);
+  }, []);
+
+  return (
+    <>
+      <header className="relative flex shrink-0 items-center justify-between gap-4 px-1 py-1.5">
+        <div className="z-10 min-w-0 flex-1">
+          <h1 className="font-display text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
+            <button
+              type="button"
+              className="bg-gradient-to-r from-[var(--accent)] to-[var(--highlight)] bg-clip-text text-transparent cursor-pointer text-left"
+              onClick={onGoHome}
+            >
+              Találd ki mit rajzoltam
+            </button>
+          </h1>
+        </div>
+
+        <div className="z-10 flex flex-1 items-center justify-end gap-2.5">
+          <IconCircle label="GitHub" onClick={showSocialNotice}>
+            <GitHubIcon />
+          </IconCircle>
+          <IconCircle label="LinkedIn" onClick={showSocialNotice}>
+            <LinkedInIcon />
+          </IconCircle>
+          <IconCircle label="X / Twitter" onClick={showSocialNotice}>
+            <XIcon />
+          </IconCircle>
+          <IconCircle label="Kijelentkezés" onClick={onLogout}>
+            <LogOut size={20} strokeWidth={2} />
+          </IconCircle>
+        </div>
+      </header>
+
+      <FeedbackMessage
+        key={socialNoticeKey}
+        open={socialNoticeOpen}
+        tone="warning"
+        message={SOCIAL_NOT_WIRED}
+        durationMs={3000}
+        onClose={hideSocialNotice}
+      />
+    </>
   );
 }

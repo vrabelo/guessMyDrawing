@@ -112,6 +112,52 @@ export type UserStatsResponse = {
   };
 };
 
+/** Admin panel — count with change since previous admin login. */
+export type AdminStatMetric = {
+  total: number;
+  delta: number;
+};
+
+export type AdminStatsResponse = {
+  users: AdminStatMetric;
+  drawings: AdminStatMetric;
+  guessPoints: AdminStatMetric;
+  drawPoints: AdminStatMetric;
+  lastLoginAt: string | null;
+};
+
+export type AdminLoginRequest = {
+  password: string;
+};
+
+export type AdminLoginResponse = {
+  token: string;
+  stats: AdminStatsResponse;
+};
+
+export type AdminDrawingRow = {
+  id: string;
+  name: string;
+  theme: string;
+  authorAlias: string;
+  authorId: string;
+  published: boolean;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type AdminUserRow = {
+  id: string;
+  alias: string;
+  guessPoints: number;
+  drawPoints: number;
+  drawingsCount: number;
+};
+
+export type AdminDeleteUserRequest = {
+  deleteDrawings?: boolean;
+};
+
 export type LoginRequest = {
   alias: string;
   pass: string;

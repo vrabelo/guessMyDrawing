@@ -18,33 +18,37 @@ function LetterMaskSlots({ mask }: { mask: string | null }) {
     );
   }
 
-  const chars = [...mask];
+  const letterCount = [...mask].filter((ch) => ch !== " ").length;
+  const compact = letterCount > 12;
+  const words = mask.split(" ").filter((w) => w.length > 0);
+
   return (
-    <div className="play-guess-info__letter-mask" aria-label="Betűsegítség">
-      {chars.map((ch, i) => {
-        if (ch === " ") {
-          return (
+    <div
+      className={[
+        "play-guess-info__letter-mask",
+        compact ? "play-guess-info__letter-mask--compact" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label="Betűsegítség"
+    >
+      {words.map((word, wi) => (
+        <span key={`w-${wi}`} className="play-guess-info__word">
+          {[...word].map((ch, i) => (
             <span
-              key={`gap-${i}`}
-              className="play-guess-info__slot play-guess-info__slot--gap"
-              aria-hidden
-            />
-          );
-        }
-        return (
-          <span
-            key={`ch-${i}`}
-            className={[
-              "play-guess-info__slot",
-              ch === "_" ? "play-guess-info__slot--empty" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {ch}
-          </span>
-        );
-      })}
+              key={`ch-${wi}-${i}`}
+              className={[
+                "play-guess-info__slot",
+                ch === "_" ? "play-guess-info__slot--empty" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {ch}
+            </span>
+          ))}
+        </span>
+      ))}
     </div>
   );
 }

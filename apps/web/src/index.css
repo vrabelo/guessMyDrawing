@@ -419,7 +419,7 @@ textarea {
   transform: scale(0.95);
 }
 
-/* Morphing hint pills — grey collapsed → light red expanded */
+/* Morphing hint pills — coral collapsed → expanded (matches design accent) */
 .hint-morph {
   --hint-size: var(--guess-h);
   position: relative;
@@ -430,12 +430,12 @@ textarea {
   align-items: center;
   overflow: hidden;
   border-radius: 9999px;
-  border: 1px solid rgba(161, 161, 170, 0.45);
-  background: rgba(113, 113, 122, 0.55);
+  border: 1px solid rgba(255, 92, 138, 0.4);
+  background: rgba(255, 92, 138, 0.22);
   padding: 0;
-  color: #e4e4e7;
+  color: #ffb3cb;
   text-align: left;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 18px rgba(255, 92, 138, 0.18);
   transition:
     width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
     background 0.25s ease,
@@ -465,10 +465,10 @@ textarea {
   width: min(100%, 18rem);
   min-height: var(--hint-size);
   height: var(--hint-size);
-  border-color: rgba(161, 161, 170, 0.5);
-  background: rgba(113, 113, 122, 0.62);
-  color: #e4e4e7;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 92, 138, 0.5);
+  background: rgba(255, 92, 138, 0.28);
+  color: #ffe4ec;
+  box-shadow: 0 8px 24px rgba(255, 92, 138, 0.22);
 }
 
 .hint-morph:disabled {
@@ -483,11 +483,11 @@ textarea {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: #a1a1aa;
+  background: var(--accent);
   font-size: 0.95rem;
   font-weight: 700;
-  color: #fafafa;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+  color: var(--accent-ink);
+  box-shadow: 0 0 12px rgba(255, 92, 138, 0.35);
   transition:
     background 0.25s ease,
     color 0.25s ease,
@@ -495,9 +495,9 @@ textarea {
 }
 
 .hint-morph--open .hint-morph__dot {
-  background: #a1a1aa;
-  color: #fafafa;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+  background: var(--accent-hover);
+  color: var(--accent-ink);
+  box-shadow: 0 0 14px rgba(255, 92, 138, 0.4);
 }
 
 .hint-morph__label {
@@ -631,42 +631,62 @@ textarea {
   color: var(--muted-strong);
 }
 
-/* Fixed-geometry letter slots — reveal must not reflow siblings */
+/* Fixed band for letter slots — up to 2 wrapped lines; outer chrome heights stay fixed */
 .play-guess-info__letter-mask {
   margin: 0;
   display: flex;
   flex: 0 0 auto;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  align-content: center;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.12em;
-  height: 2.5rem;
-  min-height: 2.5rem;
-  max-height: 2.5rem;
+  column-gap: 0.1em;
+  row-gap: 0.28rem;
+  /* Two-line box inside the fixed 6.25rem answer column — does not grow the band */
+  height: 3.65rem;
+  min-height: 3.65rem;
+  max-height: 3.65rem;
   max-width: 100%;
   overflow: hidden;
-  white-space: nowrap;
   font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas,
     monospace;
-  font-size: 1.55rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
+.play-guess-info__letter-mask--compact {
+  font-size: 1.05rem;
+  row-gap: 0.22rem;
+}
+
+.play-guess-info__word {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.1em;
+  /* Space between wrapped words (acts as the former gap slot) */
+  margin-inline-start: 0.35em;
+}
+
+.play-guess-info__word:first-child {
+  margin-inline-start: 0;
+}
+
 .play-guess-info__slot {
   box-sizing: border-box;
   display: inline-flex;
-  width: 1.15em;
-  min-width: 1.15em;
-  height: 1.15em;
-  flex: 0 0 1.15em;
+  width: 1.1em;
+  min-width: 1.1em;
+  height: 1.1em;
+  flex: 0 0 1.1em;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   line-height: 1;
-  /* Avoid underscore vs letter baseline shifts moving the flex row */
   vertical-align: middle;
 }
 
