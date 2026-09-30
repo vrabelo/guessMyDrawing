@@ -1,0 +1,53 @@
+# Example nginx site for Contabo VPS
+# Copy to: /etc/nginx/sites-available/tipp-my-draw
+# Then: ln -s /etc/nginx/sites-available/tipp-my-draw /etc/nginx/sites-enabled/
+# Replace YOUR_DOMAIN and REPO_ROOT, then: nginx -t && systemctl reload nginx
+#
+# After certbot, it will manage the ssl_certificate lines for you:
+#   certbot --nginx -d YOUR_DOMAIN
+
+upstream tipp_api {
+    server 127.0.0.1:3001;
+    keepalive 8;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name YOUR_DOMAIN;
+
+    # Drawing payloads are base64 data URLs in JSON (API limit 5mb)
+    client_max_body_size 10m;
+
+    # Frontend build output
+    root REPO_ROOT/apps/web/dist;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://tipp_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+
+    # WebSocket (same host as the SPA — required by apps/web api client)
+    location /ws {
+        proxy_pass http://tipp_api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400s;
+    }
+
+    # SPA fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
