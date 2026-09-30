@@ -1,4 +1,4 @@
-# Example nginx site for Contabo VPS
+# Example nginx site for VPS
 # Copy to: /etc/nginx/sites-available/tipp-my-draw
 # Then: ln -s /etc/nginx/sites-available/tipp-my-draw /etc/nginx/sites-enabled/
 # Replace YOUR_DOMAIN and REPO_ROOT, then: nginx -t && systemctl reload nginx
