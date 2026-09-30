@@ -115,6 +115,30 @@
   flex: 1 1 auto;
 }
 
+/* Active round: full-board 16:9 host; chrome overlays on top (does not steal flex height) */
+.play-board--guessing {
+  background: linear-gradient(
+    165deg,
+    rgba(255, 248, 240, 0.07) 0%,
+    rgba(42, 28, 34, 0.52) 45%,
+    rgba(22, 14, 18, 0.68) 100%
+  );
+}
+
+/* Bottom-dock puzzle inside full host — higher specificity beats shared place-items:center */
+.game-canvas-viewport-host.play-board__viewport-host--dock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 10px 10px;
+  box-sizing: border-box;
+}
+
+.game-canvas-viewport-host.play-board__viewport-host--dock .game-canvas-viewport {
+  flex-shrink: 0;
+}
+
 .play-board__placeholder {
   position: absolute;
   inset: 0;

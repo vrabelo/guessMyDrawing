@@ -138,21 +138,22 @@ Aktuális layout ezen a VPS-en (meglévő jukebox/trackpool **érintetlen**):
 | Tipp my draw kód | `/opt/tipp-my-draw` |
 | API (pm2) | `tipp-my-draw-api` → `127.0.0.1:3001` |
 | Mock DB | `/opt/tipp-my-draw/apps/api/data/db.json` (gitignore — scp-vel feltöltve) |
-| nginx tipp | `sites-available/tipp-my-draw` → **`:9080`** (amíg nincs saját domain) |
+| nginx tipp | `sites-available/tipp-my-draw` → `guessmydraw.duckdns.org` (:80/:443) + opcionális `:9080` |
 | Trackpool | meglévő nginx site + docker `jukebox-cloud-relay` — **ne módosítsd** |
 
-Ideiglenes elérés DNS nélkül: `http://169.58.76.201:9080/`  
-Health: `http://169.58.76.201:9080/api/health` → `{"ok":true}`
+Élő URL: **https://guessmydraw.duckdns.org/**  
+Health: `https://guessmydraw.duckdns.org/api/health` → `{"ok":true}`  
+IP bypass: `http://169.58.76.201:9080/`
 
 GitHub clone ezen a gépen: SSH host alias `github.com-tipp` + deploy key (`~/.ssh/github_tipp_key`).
 
-### DuckDNS + HTTPS (később, saját subdomain)
+### DuckDNS + HTTPS (kész ezen a VPS-en)
 
-1. DuckDNS: új hostname (pl. `tipp-my-draw.duckdns.org`) → A rekord: `169.58.76.201` (ne a trackpool hostname-ot írd felül).
-2. nginx: a tipp site-ban `listen 80` + `server_name tipp-my-draw.duckdns.org;` (és később 443), `root` marad `/opt/tipp-my-draw/apps/web/dist`. A **9080** blokk megmaradhat tesztnek, vagy törölhető.
-3. `pm2` env: `WEB_URL=https://tipp-my-draw.duckdns.org` a `deploy/ecosystem.config.cjs`-ben, majd `pm2 restart tipp-my-draw-api`.
-4. Certbot **csak** az új domainre: `certbot --nginx -d tipp-my-draw.duckdns.org` — ne futtasd a trackpool site fájlján.
-5. Contabo / UFW: 80 + 443 nyitva (9080 opcionális).
+1. DuckDNS: `guessmydraw.duckdns.org` → `169.58.76.201` (külön hostname a trackpooltól).
+2. nginx: csak a tipp site (`server_name guessmydraw.duckdns.org`) — trackpool.conf érintetlen.
+3. `WEB_URL=https://guessmydraw.duckdns.org` a `deploy/ecosystem.config.cjs`-ben.
+4. Certbot: `certbot --nginx -d guessmydraw.duckdns.org` (csak ez a domain).
+5. Contabo firewall: 80 + 443 (9080 opcionális IP-teszthez).
 
 Frissítés ezen a VPS-en:
 

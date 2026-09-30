@@ -73,16 +73,44 @@ export function PuzzleBoard({
     !showStartModal &&
     !roundOver &&
     showImage;
+  /** Keep search/hint/mask visible under result dialogs; do not move the image. */
+  const showChrome =
+    showImage && !awaitingCountdown && !showStartModal;
 
   return (
     <div
       className={[
         "draw-screen__canvas play-board",
         showImage ? "play-board--puzzle" : "play-board--idle",
-      ].join(" ")}
+        showChrome ? "play-board--guessing" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
+      {showChrome ? (
+        <div className="play-guess-chrome">
+          <GuessCard
+            guess={guess}
+            locked={!showGuess}
+            elapsedMs={elapsedMs}
+            potentialPoints={potentialPoints}
+            onGuessChange={onGuessChange}
+            onSubmit={onGuessSubmit}
+            onPass={onPass}
+          />
+          <HintPanel
+            hint={hint}
+            revealed={hintRevealed}
+            disabled={!showGuess || hintsDisabled || roundOver}
+            onReveal={onRevealHint}
+            letterMask={letterMask}
+            wrongGuesses={wrongGuesses}
+          />
+        </div>
+      ) : null}
+
       {showImage ? (
-        <div className="game-canvas-viewport-host play-board__viewport-host">
+        <div className="game-canvas-viewport-host play-board__viewport-host play-board__viewport-host--dock">
           <div className="game-canvas-viewport game-canvas-viewport--play">
             <img
               src={src!}
@@ -97,34 +125,6 @@ export function PuzzleBoard({
           aria-hidden={showStartModal}
         />
       )}
-
-      {showGuess ? (
-        <div className="play-guess-overlay absolute inset-x-0 top-0 z-20">
-          <GuessCard
-            guess={guess}
-            locked={false}
-            elapsedMs={elapsedMs}
-            letterMask={letterMask}
-            potentialPoints={potentialPoints}
-            onGuessChange={onGuessChange}
-            onSubmit={onGuessSubmit}
-            onPass={onPass}
-          />
-          <div className="play-guess-overlay__hints">
-            <HintPanel
-              hint={hint}
-              revealed={hintRevealed}
-              disabled={hintsDisabled || roundOver}
-              onReveal={onRevealHint}
-              wrongGuesses={wrongGuesses}
-            />
-          </div>
-        </div>
-      ) : !showStartModal && !awaitingCountdown ? (
-        <div className="play-guess-overlay absolute inset-x-0 top-0 z-20">
-          <div className="guess-top-bar guess-top-bar--spacer" aria-hidden />
-        </div>
-      ) : null}
 
       {showImage && authorAlias && !showStartModal && !awaitingCountdown ? (
         <div className="pointer-events-none absolute right-2 bottom-2 z-10 rounded-full bg-black/35 px-2.5 py-1">

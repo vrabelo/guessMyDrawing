@@ -295,13 +295,14 @@ export function usePlaySession(onScored: () => void) {
   const letterSeed = `${currentId ?? ""}:${progress?.guessStartedAt ?? 0}`;
 
   const letterMask = useMemo(() => {
-    if (!roundActive || !revealAnswer) return null;
+    // Keep mask while answer is known (incl. result overlay) so chrome does not collapse to "…"
+    if (!revealAnswer) return null;
     return buildLetterMask(
       revealAnswer,
       letterRevealCount(elapsedMs),
       letterSeed
     );
-  }, [roundActive, revealAnswer, elapsedMs, letterSeed]);
+  }, [revealAnswer, elapsedMs, letterSeed]);
 
   const potentialPoints = potentialTipperPoints(
     hintsRevealed,

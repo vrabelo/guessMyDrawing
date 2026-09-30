@@ -1,7 +1,7 @@
-# Contabo / VPS production process manager
-# Usage (from repo root, after npm run build):
-#   pm2 start deploy/ecosystem.config.cjs
-#   pm2 save && pm2 startup
+// Contabo / VPS production process manager
+// Usage (from repo root, after npm run build):
+//   pm2 start deploy/ecosystem.config.cjs
+//   pm2 save && pm2 startup
 
 module.exports = {
   apps: [
@@ -14,7 +14,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3001,
-        WEB_URL: "https://YOUR_DOMAIN",
+        WEB_URL: "https://guessmydraw.duckdns.org",
       },
       // Restart if memory grows (drawings as data URLs inflate db.json)
       max_memory_restart: "512M",

@@ -12,8 +12,8 @@ type UseAuthFormOptions = {
 };
 
 export function useAuthForm({ mode, onLoggedIn }: UseAuthFormOptions) {
-  const [alias, setAlias] = useState("Bela");
-  const [pass, setPass] = useState("bela");
+  const [alias, setAlias] = useState("");
+  const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 

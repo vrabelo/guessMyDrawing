@@ -5,7 +5,6 @@ type GuessCardProps = {
   guess: string;
   locked: boolean;
   elapsedMs: number;
-  letterMask: string | null;
   potentialPoints: number;
   onGuessChange: (value: string) => void;
   onSubmit: (e: FormEvent) => void;
@@ -25,21 +24,27 @@ export function GuessCard({
   guess,
   locked,
   elapsedMs,
-  letterMask,
   potentialPoints,
   onGuessChange,
   onSubmit,
   onPass,
 }: GuessCardProps) {
-  if (locked) return null;
-
-  const inGrace = elapsedMs < LETTER_GRACE_MS;
+  const inGrace = !locked && elapsedMs < LETTER_GRACE_MS;
   const remainingGrace = Math.max(0, LETTER_GRACE_MS - elapsedMs);
 
   return (
-    <div className="guess-top-bar">
+    <div className={["guess-top-bar", locked ? "guess-top-bar--locked" : ""].filter(Boolean).join(" ")}>
       <div className="guess-top-bar__row">
-        <form className="guess-top-bar__search" onSubmit={onSubmit}>
+        <form
+          className="guess-top-bar__search"
+          onSubmit={(e) => {
+            if (locked) {
+              e.preventDefault();
+              return;
+            }
+            onSubmit(e);
+          }}
+        >
           <input
             name="guess"
             value={guess}
@@ -47,31 +52,34 @@ export function GuessCard({
             placeholder="Mit látsz a képen ?"
             className="guess-faint-input min-w-0 flex-1"
             autoComplete="off"
+            disabled={locked}
+            readOnly={locked}
           />
-          <button type="submit" className="guess-faint-btn">
+          <button type="submit" className="guess-faint-btn" disabled={locked}>
             Küldés
           </button>
           <button
             type="button"
             className="guess-faint-btn guess-faint-btn--pass"
             onClick={onPass}
+            disabled={locked}
           >
             Passz
           </button>
         </form>
 
         <div className="guess-top-bar__feedback" aria-live="polite">
-          <p className="guess-top-bar__letter-mask" aria-label="Betűsegítség">
-            {letterMask ?? "…"}
-          </p>
           <p className="guess-top-bar__reward">
-            <strong>{formatPoints(potentialPoints)}</strong> pont
-            {inGrace ? (
-              <span className="guess-top-bar__grace">
-                {" "}
-                · betű {formatCountdown(remainingGrace)} mp múlva
-              </span>
-            ) : null}
+            <strong>{formatPoints(potentialPoints)}</strong>
+            <span className="guess-top-bar__reward-unit"> pont</span>
+            <span
+              className="guess-top-bar__grace"
+              style={{ visibility: inGrace ? "visible" : "hidden" }}
+              aria-hidden={!inGrace}
+            >
+              {" "}
+              · betű {formatCountdown(remainingGrace)} mp múlva
+            </span>
           </p>
         </div>
       </div>
