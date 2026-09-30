@@ -2,10 +2,10 @@
   margin-inline: auto;
   width: 100%;
   max-width: 24rem;
-  border-radius: 1rem;
+  border-radius: 1.75rem;
   background: color-mix(in srgb, var(--panel) 90%, transparent);
   padding: 1.5rem;
-  box-shadow: 0 0 40px rgba(45, 212, 191, 0.12);
+  box-shadow: 0 0 40px rgba(255, 92, 138, 0.14);
   ring: 1px solid rgba(255, 255, 255, 0.1);
   outline: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
@@ -28,7 +28,7 @@
 }
 
 .auth-screen__title-gradient {
-  background: linear-gradient(to right, var(--accent), #5eead4);
+  background: linear-gradient(to right, var(--accent), var(--highlight));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

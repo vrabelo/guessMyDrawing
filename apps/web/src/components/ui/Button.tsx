@@ -11,7 +11,7 @@ type ButtonProps = {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-[var(--accent)] text-[#042f2e] hover:bg-[var(--accent-hover)] border-transparent shadow-[0_0_20px_rgba(45,212,191,0.22)] hover:shadow-[0_0_28px_rgba(45,212,191,0.35)]",
+    "bg-[var(--accent)] text-[var(--accent-ink)] hover:bg-[var(--accent-hover)] border-transparent shadow-[0_8px_24px_rgba(255,92,138,0.35)] hover:shadow-[0_10px_28px_rgba(255,92,138,0.45)]",
   secondary:
     "bg-[var(--surface)] text-[var(--ink)] border-[var(--border)] hover:border-[var(--border-hover)] hover:bg-[var(--panel-elevated)]",
   ghost:
@@ -30,7 +30,7 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const activeClass = active
-    ? "ring-2 ring-[var(--accent)] border-[var(--accent)] shadow-[0_0_16px_rgba(45,212,191,0.2)]"
+    ? "ring-2 ring-[var(--accent)] border-[var(--accent)] shadow-[0_0_16px_rgba(255,92,138,0.25)]"
     : "";
 
   return (

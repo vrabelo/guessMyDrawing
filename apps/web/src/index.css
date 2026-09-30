@@ -1,25 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #07070a;
-  --panel: rgba(17, 17, 20, 0.72);
-  --panel-solid: #111114;
-  --panel-elevated: rgba(24, 24, 27, 0.85);
-  --surface: rgba(28, 28, 33, 0.9);
-  --ink: #fafafa;
-  --muted: #a1a1aa;
-  --muted-strong: #d4d4d8;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(45, 212, 191, 0.4);
-  --accent: #2dd4bf;
-  --accent-hover: #5eead4;
-  --accent-muted: rgba(45, 212, 191, 0.14);
+  --bg: #120e0f;
+  --panel: rgba(36, 24, 28, 0.72);
+  --panel-solid: #1c1418;
+  --panel-elevated: rgba(42, 28, 34, 0.88);
+  --surface: rgba(48, 32, 38, 0.92);
+  --ink: #fff8f0;
+  --muted: #c4b5a8;
+  --muted-strong: #e8ddd4;
+  --border: rgba(255, 255, 255, 0.12);
+  --border-hover: rgba(255, 92, 138, 0.45);
+  --accent: #ff5c8a;
+  --accent-hover: #ff8fb3;
+  --accent-muted: rgba(255, 92, 138, 0.16);
+  --accent-ink: #ffffff;
+  --success: #34d399;
+  --success-muted: rgba(52, 211, 153, 0.16);
+  --highlight: #fbbf24;
+  --highlight-muted: rgba(251, 191, 36, 0.18);
   --danger: #f87171;
   --danger-surface: rgba(127, 29, 29, 0.4);
   --danger-border: rgba(248, 113, 113, 0.28);
-  --glow-cyan: rgba(45, 212, 191, 0.16);
-  --glow-magenta: rgba(232, 121, 249, 0.07);
-  --radius-game: 1rem;
+  --glow-primary: rgba(255, 92, 138, 0.18);
+  --glow-warm: rgba(251, 191, 36, 0.1);
+  --radius-game: 1.5rem;
   --radius-pill: 9999px;
   --slot-h: 2.85rem;
   --guess-h: 2.85rem;
@@ -47,12 +52,12 @@ body::before {
   z-index: 0;
   background-color: var(--bg);
   background-image:
-    radial-gradient(ellipse 60% 45% at 50% 0%, var(--glow-cyan), transparent 60%),
-    radial-gradient(ellipse 40% 35% at 90% 80%, var(--glow-magenta), transparent 55%),
-    radial-gradient(ellipse 35% 30% at 8% 70%, rgba(45, 212, 191, 0.06), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 50% 0%, var(--glow-primary), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 90% 80%, var(--glow-warm), transparent 55%),
+    radial-gradient(ellipse 35% 30% at 8% 70%, rgba(52, 211, 153, 0.08), transparent 50%),
     linear-gradient(
-      rgba(7, 7, 10, 0.4),
-      rgba(7, 7, 10, 0.55)
+      rgba(18, 14, 15, 0.42),
+      rgba(18, 14, 15, 0.58)
     ),
     url("./assets/bg.avif");
   background-repeat: no-repeat;
@@ -133,26 +138,26 @@ textarea {
 
 /* Floating glass cards — soft elevation, minimal rigid borders */
 .game-card {
-  border-radius: calc(var(--radius-game) + 0.15rem);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: calc(var(--radius-game) + 0.25rem);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(
     165deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(24, 24, 27, 0.55) 45%,
-    rgba(9, 9, 11, 0.72) 100%
+    rgba(255, 248, 240, 0.07) 0%,
+    rgba(42, 28, 34, 0.52) 45%,
+    rgba(22, 14, 18, 0.68) 100%
   );
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 18px 50px rgba(0, 0, 0, 0.45),
-    0 0 48px rgba(45, 212, 191, 0.04);
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 18px 50px rgba(0, 0, 0, 0.4),
+    0 0 48px rgba(255, 92, 138, 0.06);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
 .game-card-title {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -164,7 +169,7 @@ textarea {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 1.25rem;
+  border-radius: 1.75rem;
   background:
     radial-gradient(
       ellipse 80% 70% at 50% 45%,
@@ -181,29 +186,29 @@ textarea {
 .canvas-stage--portrait {
   background: linear-gradient(
     165deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(24, 24, 27, 0.45) 45%,
-    rgba(9, 9, 11, 0.58) 100%
+    rgba(255, 248, 240, 0.06) 0%,
+    rgba(42, 28, 34, 0.42) 45%,
+    rgba(22, 14, 18, 0.55) 100%
   );
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 16px 40px rgba(0, 0, 0, 0.35);
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 16px 40px rgba(0, 0, 0, 0.32);
 }
 
 .canvas-stage--landscape {
   background: linear-gradient(
     165deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(24, 24, 27, 0.45) 45%,
-    rgba(9, 9, 11, 0.58) 100%
+    rgba(255, 248, 240, 0.06) 0%,
+    rgba(42, 28, 34, 0.42) 45%,
+    rgba(22, 14, 18, 0.55) 100%
   );
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 18px 48px rgba(0, 0, 0, 0.4);
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 18px 48px rgba(0, 0, 0, 0.36);
 }
 
 .canvas-stage--landscape:not(.play-board) .canvas-stage__img {
@@ -238,7 +243,7 @@ textarea {
   max-width: none;
   aspect-ratio: 16 / 9;
   height: auto;
-  border-radius: 1.1rem;
+  border-radius: 1.35rem;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.06),
     inset 0 0 40px rgba(0, 0, 0, 0.12);
@@ -284,7 +289,7 @@ textarea {
   padding: 0.2rem;
   border-radius: var(--radius-pill);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(17, 17, 20, 0.65);
+  background: rgba(36, 24, 28, 0.65);
   gap: 0.15rem;
 }
 
@@ -304,7 +309,7 @@ textarea {
 
 .draw-mode-toggle__btn--active {
   background: var(--accent);
-  color: #042f2e;
+  color: var(--accent-ink);
 }
 
 .draw-mode-toggle__btn:disabled {
@@ -409,7 +414,7 @@ textarea {
   border-color: var(--border-hover);
   background: var(--accent-muted);
   color: var(--accent);
-  box-shadow: 0 0 28px rgba(45, 212, 191, 0.22);
+  box-shadow: 0 0 28px rgba(255, 92, 138, 0.22);
 }
 
 .icon-circle:active:not(:disabled) {
@@ -607,7 +612,7 @@ textarea {
   width: 100%;
   min-height: var(--guess-bar-h);
   padding: 0.7rem 1rem 0.85rem;
-  border-radius: 1.25rem 1.25rem 0 0;
+  border-radius: 1.75rem 1.75rem 0 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(212, 212, 216, 0.45);
   backdrop-filter: blur(10px);
@@ -663,14 +668,14 @@ textarea {
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: 0.01em;
-  color: rgba(15, 118, 110, 1);
+  color: #be185d;
   font-variant-numeric: tabular-nums;
 }
 
 .guess-top-bar__countdown strong {
   font-weight: 800;
   font-size: 1.85rem;
-  color: rgba(6, 78, 59, 1);
+  color: #9f1239;
 }
 
 .guess-top-bar__countdown-unit {
@@ -693,7 +698,7 @@ textarea {
 
 .guess-top-bar__reward strong {
   font-weight: 700;
-  color: rgba(15, 118, 110, 1);
+  color: #be185d;
 }
 
 .guess-top-bar__grace {
@@ -723,7 +728,7 @@ textarea {
 
 .guess-top-bar__attempts strong {
   font-weight: 700;
-  color: rgba(15, 118, 110, 1);
+  color: #be185d;
 }
 
 .guess-top-bar__notice {
@@ -748,7 +753,7 @@ textarea {
 
 .guess-top-bar__reward strong {
   font-weight: 700;
-  color: rgba(15, 118, 110, 1);
+  color: #be185d;
 }
 
 .guess-top-bar__timer {
@@ -761,7 +766,7 @@ textarea {
 
 .guess-top-bar__timer strong {
   font-weight: 700;
-  color: rgba(15, 118, 110, 1);
+  color: #be185d;
 }
 
 /* Floating guess remnants */
@@ -829,7 +834,7 @@ textarea {
   color: var(--ink);
   box-shadow:
     0 0 0 3px var(--accent-muted),
-    0 0 24px rgba(45, 212, 191, 0.18);
+    0 0 24px rgba(255, 92, 138, 0.18);
 }
 
 .guess-faint-input:focus::placeholder {
@@ -840,13 +845,13 @@ textarea {
   height: var(--guess-h);
   flex-shrink: 0;
   border-radius: 9999px;
-  border: 1px solid rgba(45, 212, 191, 0.28);
-  background: rgba(45, 212, 191, 0.22);
+  border: 1px solid rgba(255, 92, 138, 0.28);
+  background: rgba(255, 92, 138, 0.22);
   padding: 0 1.35rem;
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: rgba(15, 118, 110, 0.85);
+  color: rgba(190, 24, 93, 0.9);
   transition:
     background 0.22s ease,
     border-color 0.22s ease,
@@ -856,47 +861,47 @@ textarea {
 }
 
 .guess-faint-btn:hover {
-  background: rgba(45, 212, 191, 0.9);
+  background: rgba(255, 92, 138, 0.9);
   border-color: transparent;
-  color: #042f2e;
-  box-shadow: 0 0 24px rgba(45, 212, 191, 0.28);
+  color: var(--accent-ink);
+  box-shadow: 0 0 24px rgba(255, 92, 138, 0.28);
 }
 
 .guess-faint-btn:active {
   transform: scale(0.97);
   background: var(--accent);
-  color: #042f2e;
+  color: var(--accent-ink);
 }
 
 .guess-faint-btn:focus-visible {
   outline: none;
-  background: rgba(45, 212, 191, 0.9);
-  color: #042f2e;
+  background: rgba(255, 92, 138, 0.9);
+  color: var(--accent-ink);
   box-shadow: 0 0 0 3px var(--accent-muted);
 }
 
 .guess-faint-btn--pass {
-  border-color: rgba(161, 161, 170, 0.35);
-  background: rgba(39, 39, 42, 0.55);
-  color: rgba(24, 24, 27, 0.78);
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.18);
+  color: rgba(185, 28, 28, 0.85);
 }
 
 .guess-faint-btn--pass:hover {
-  border-color: rgba(113, 113, 122, 0.55);
-  background: rgba(63, 63, 70, 0.85);
-  color: #fafafa;
-  box-shadow: none;
+  border-color: transparent;
+  background: rgba(255, 107, 107, 0.9);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.28);
 }
 
 .guess-faint-btn--pass:active {
-  background: rgba(82, 82, 91, 0.95);
-  color: #fafafa;
+  background: #ff6b6b;
+  color: #fff;
 }
 
 .guess-faint-btn--pass:focus-visible {
-  background: rgba(63, 63, 70, 0.85);
-  color: #fafafa;
-  box-shadow: 0 0 0 3px rgba(161, 161, 170, 0.25);
+  background: rgba(255, 107, 107, 0.9);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.28);
 }
 
 .guess-faint-btn--go {
@@ -919,9 +924,9 @@ textarea {
 }
 
 .result-overlay__card {
-  border-radius: 1.25rem;
+  border-radius: 1.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(17, 17, 20, 0.88);
+  background: rgba(36, 24, 28, 0.9);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.06) inset,
     0 24px 64px rgba(0, 0, 0, 0.55);
@@ -975,7 +980,7 @@ button.game-slot:not(:disabled):hover {
   border-color: var(--border-hover);
   background: var(--accent-muted);
   color: var(--accent-hover);
-  box-shadow: 0 0 24px rgba(45, 212, 191, 0.18);
+  box-shadow: 0 0 24px rgba(255, 92, 138, 0.18);
 }
 
 button.game-slot:not(:disabled):active {
@@ -1043,7 +1048,7 @@ button.game-slot:not(:disabled):active {
   background: rgba(24, 24, 27, 0.95);
   box-shadow:
     0 0 0 3px var(--accent-muted),
-    0 0 28px rgba(45, 212, 191, 0.2);
+    0 0 28px rgba(255, 92, 138, 0.2);
 }
 
 .game-send {
@@ -1066,12 +1071,13 @@ button.game-slot:not(:disabled):active {
   padding: 0.3rem;
   border-radius: var(--radius-pill);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(17, 17, 20, 0.55);
+  background: rgba(36, 24, 28, 0.55);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.05) inset,
-    0 12px 36px rgba(0, 0, 0, 0.35);
+    0 12px 36px rgba(0, 0, 0, 0.32),
+    0 0 32px rgba(255, 92, 138, 0.08);
 }
 
 .mode-segment__thumb {
@@ -1083,7 +1089,7 @@ button.game-slot:not(:disabled):active {
   border-radius: var(--radius-pill);
   background: var(--accent);
   box-shadow:
-    0 0 24px rgba(45, 212, 191, 0.35),
+    0 0 24px rgba(255, 92, 138, 0.35),
     0 2px 8px rgba(0, 0, 0, 0.25);
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
@@ -1110,7 +1116,7 @@ button.game-slot:not(:disabled):active {
 }
 
 .mode-segment__btn[aria-selected="true"] {
-  color: #042f2e;
+  color: var(--accent-ink);
 }
 
 .mode-segment__btn:not([aria-selected="true"]):hover {
@@ -1128,12 +1134,12 @@ button.game-slot:not(:disabled):active {
 
 /* Info banner — full-width instruction row */
 .info-banner {
-  border: 1px solid rgba(45, 212, 191, 0.14);
+  border: 1px solid rgba(255, 92, 138, 0.16);
   background: linear-gradient(
     90deg,
-    rgba(45, 212, 191, 0.1) 0%,
-    rgba(24, 24, 27, 0.45) 50%,
-    rgba(45, 212, 191, 0.06) 100%
+    rgba(255, 92, 138, 0.12) 0%,
+    rgba(42, 28, 34, 0.45) 50%,
+    rgba(251, 191, 36, 0.06) 100%
   );
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.04) inset,

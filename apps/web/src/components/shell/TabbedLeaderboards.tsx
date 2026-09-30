@@ -32,7 +32,7 @@ function BoardList({ entries }: { entries: LeaderboardEntry[] }) {
               className={[
                 "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums",
                 i < 3
-                  ? "bg-[var(--accent-muted)] text-[var(--accent)]"
+                  ? "bg-[var(--highlight-muted)] text-[var(--highlight)]"
                   : "bg-white/[0.05] text-[var(--muted)]",
               ].join(" ")}
             >
@@ -42,7 +42,7 @@ function BoardList({ entries }: { entries: LeaderboardEntry[] }) {
               {e.alias}
             </span>
           </span>
-          <span className="shrink-0 text-sm font-semibold tabular-nums text-[var(--accent)]">
+          <span className="shrink-0 text-sm font-semibold tabular-nums text-[var(--highlight)]">
             {e.points}
           </span>
         </li>
@@ -82,7 +82,7 @@ export function TabbedLeaderboards({ data }: TabbedLeaderboardsProps) {
                 className={[
                   "relative flex-1 rounded-t-md px-1.5 pb-2.5 pt-1.5 text-[11px] font-semibold tracking-wide transition-colors duration-200",
                   selected
-                    ? "text-[var(--accent)]"
+                    ? "text-[var(--success)]"
                     : "text-[var(--muted)] hover:text-[var(--muted-strong)]",
                 ].join(" ")}
               >
@@ -91,7 +91,7 @@ export function TabbedLeaderboards({ data }: TabbedLeaderboardsProps) {
                   className={[
                     "absolute inset-x-2 bottom-0 h-0.5 rounded-full transition-all duration-200",
                     selected
-                      ? "bg-[var(--accent)] opacity-100 shadow-[0_0_10px_rgba(45,212,191,0.55)]"
+                      ? "bg-[var(--success)] opacity-100 shadow-[0_0_10px_rgba(52,211,153,0.55)]"
                       : "bg-transparent opacity-0",
                   ].join(" ")}
                 />

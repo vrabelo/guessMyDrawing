@@ -24,7 +24,7 @@ function StatRow({
       <span
         className={[
           "text-sm font-semibold tabular-nums",
-          accent ? "text-[var(--accent)]" : "text-[var(--ink)]",
+          accent ? "text-[var(--highlight)]" : "text-[var(--ink)]",
         ].join(" ")}
       >
         {value}

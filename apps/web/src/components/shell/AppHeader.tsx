@@ -78,7 +78,7 @@ export function AppHeader({ onGoHome, onLogout }: AppHeaderProps) {
         <h1 className="font-display text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
           <button
             type="button"
-            className="bg-gradient-to-r from-[var(--accent)] to-[#5eead4] bg-clip-text text-transparent cursor-pointer text-left"
+            className="bg-gradient-to-r from-[var(--accent)] to-[var(--highlight)] bg-clip-text text-transparent cursor-pointer text-left"
             onClick={onGoHome}
           >
             Találd ki mit rajzoltam

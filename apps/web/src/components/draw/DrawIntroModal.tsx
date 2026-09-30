@@ -18,7 +18,7 @@ export function DrawIntroModal({ open, onConfirm }: DrawIntroModalProps) {
       aria-modal="true"
       aria-labelledby="draw-intro-title"
     >
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--panel-solid)] p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--panel-solid)] p-5 shadow-xl">
         <h2
           id="draw-intro-title"
           className="mb-2 text-lg font-semibold text-[var(--ink)]"

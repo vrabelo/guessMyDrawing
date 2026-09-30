@@ -13,7 +13,7 @@
 .game-dialog__card {
   width: 100%;
   max-width: 22rem;
-  border-radius: 1rem;
+  border-radius: 1.75rem;
   border: 1px solid var(--border);
   background: var(--panel-solid);
   padding: 1.25rem;

@@ -15,7 +15,7 @@ export function GameRulesBanner({ mode, compact = false }: GameRulesBannerProps)
   return (
     <div
       className={[
-        "info-banner flex w-full shrink-0 items-start gap-2.5 rounded-2xl",
+        "info-banner flex w-full shrink-0 items-start gap-2.5 rounded-3xl",
         compact ? "px-3.5 py-3" : "items-center justify-center px-5 py-3",
       ].join(" ")}
     >

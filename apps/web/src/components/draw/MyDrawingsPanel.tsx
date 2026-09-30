@@ -43,7 +43,7 @@ export function MyDrawingsPanel({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Keresés név vagy téma…"
-          className="w-full shrink-0 rounded-2xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3 py-2 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+          className="w-full shrink-0 rounded-3xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3 py-2 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
         />
         <div className="min-h-0 flex-1 overflow-y-auto px-0 py-0">
           {loading ? (
@@ -62,7 +62,7 @@ export function MyDrawingsPanel({
                       type="button"
                       onClick={() => onSelect(d)}
                       className={[
-                        "flex w-full items-start gap-2 rounded-xl px-3 py-2.5 text-left transition",
+                        "flex w-full items-start gap-2 rounded-2xl px-3 py-2.5 text-left transition",
                         selected
                           ? "bg-[var(--accent-muted)] ring-1 ring-[var(--accent)]"
                           : "hover:bg-white/[0.04]",
@@ -80,7 +80,7 @@ export function MyDrawingsPanel({
                           <span className="block min-w-0 truncate text-sm font-semibold text-[var(--ink)]">
                             {d.name}
                           </span>
-                          <span className="shrink-0 text-xs font-semibold tabular-nums text-[var(--accent)]">
+                          <span className="shrink-0 text-xs font-semibold tabular-nums text-[var(--highlight)]">
                             +{d.drawerPointsEarned} pont
                           </span>
                         </span>

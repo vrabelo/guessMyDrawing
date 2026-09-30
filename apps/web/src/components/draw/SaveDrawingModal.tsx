@@ -70,7 +70,7 @@ export function SaveDrawingModal({
       aria-modal="true"
       aria-labelledby="save-drawing-title"
     >
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--panel-solid)] p-5 shadow-xl">
+      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--panel-solid)] p-5 shadow-xl">
         <h2
           id="save-drawing-title"
           className="mb-1 text-lg font-semibold text-[var(--ink)]"
