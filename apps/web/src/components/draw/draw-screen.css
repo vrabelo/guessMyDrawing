@@ -2,6 +2,8 @@
 
 .draw-screen {
   --game-col-gap: 1.25rem;
+  /* Toolbar row + margin-bottom + canvas top padding — aligns side stats with board top */
+  --game-side-offset: calc(var(--toolbar-btn-h) + 0.25rem + 0.5rem);
   grid-column: 1 / -1;
   display: grid;
   width: 100%;
@@ -70,10 +72,10 @@
   padding-inline: 0.25rem;
 }
 
-/* Fixed size buttons matching Mentés / Button height */
+/* Fixed size buttons matching ModeToggle tipp/rajz reference */
 .draw-toolbar {
-  --draw-btn-h: 2.5rem;
-  --draw-btn-w: 8.25rem;
+  --draw-btn-h: var(--toolbar-btn-h);
+  --draw-btn-w: var(--toolbar-btn-w);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -179,8 +181,8 @@
 }
 
 .draw-screen__recommend {
-  --draw-btn-h: 2.5rem;
-  --draw-btn-w: 8.25rem;
+  --draw-btn-h: var(--toolbar-btn-h);
+  --draw-btn-w: var(--toolbar-btn-w);
   margin-bottom: 0.5rem;
   margin-top: 0;
 }
@@ -286,6 +288,7 @@
   flex-direction: column;
   align-self: stretch;
   overflow: hidden;
+  padding-top: var(--game-side-offset);
 }
 
 .draw-screen__side > * {

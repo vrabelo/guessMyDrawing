@@ -13,21 +13,12 @@ const modes: { id: AppMode; label: string }[] = [
 ];
 
 export function ModeToggle({ mode, onChange }: ModeToggleProps) {
-  const activeIndex = mode === "play" ? 0 : 1;
-
   return (
     <div
-      className="mode-segment mx-auto shrink-0"
+      className="mode-segment shrink-0"
       role="tablist"
       aria-label="Mód"
     >
-      <div
-        className="mode-segment__thumb"
-        style={{
-          transform: `translateX(calc(${activeIndex} * 100%))`,
-        }}
-        aria-hidden
-      />
       {modes.map((m) => {
         const selected = mode === m.id;
         return (

@@ -82,7 +82,7 @@ export function TabbedLeaderboards({ data }: TabbedLeaderboardsProps) {
                 className={[
                   "relative flex-1 rounded-t-md px-1.5 pb-2.5 pt-1.5 text-[11px] font-semibold tracking-wide transition-colors duration-200",
                   selected
-                    ? "text-[var(--success)]"
+                    ? "text-[var(--accent)]"
                     : "text-[var(--muted)] hover:text-[var(--muted-strong)]",
                 ].join(" ")}
               >
@@ -91,7 +91,7 @@ export function TabbedLeaderboards({ data }: TabbedLeaderboardsProps) {
                   className={[
                     "absolute inset-x-2 bottom-0 h-0.5 rounded-full transition-all duration-200",
                     selected
-                      ? "bg-[var(--success)] opacity-100 shadow-[0_0_10px_rgba(52,211,153,0.55)]"
+                      ? "bg-[var(--accent)] opacity-100 shadow-[0_0_10px_rgba(255,92,138,0.55)]"
                       : "bg-transparent opacity-0",
                   ].join(" ")}
                 />
@@ -101,7 +101,7 @@ export function TabbedLeaderboards({ data }: TabbedLeaderboardsProps) {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+      <div className="min-h-0 flex-1 overflow-hidden px-2 py-2">
         <BoardList entries={entries} />
       </div>
     </section>
