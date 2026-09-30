@@ -28,7 +28,7 @@ export function LoginForm({ onLoggedIn }: LoginFormProps) {
       />
       {form.error ? <p className="auth-form__error">{form.error}</p> : null}
       <Button
-        label="Bejelentkezés"
+        label="Mehet"
         variant="primary"
         type="submit"
         disabled={form.busy}

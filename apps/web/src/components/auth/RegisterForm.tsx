@@ -28,7 +28,7 @@ export function RegisterForm({ onLoggedIn }: RegisterFormProps) {
       />
       {form.error ? <p className="auth-form__error">{form.error}</p> : null}
       <Button
-        label="Regisztráció"
+        label="Mehet"
         variant="primary"
         type="submit"
         disabled={form.busy}
