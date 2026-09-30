@@ -129,6 +129,41 @@ Health: `https://YOUR_DOMAIN/api/health` → `{"ok":true}`
 
 Demo login (seed): `Bela` / `bela` — publikus szerveren cseréld / korlátozd.
 
+## Contabo izolált telepítés (trackpool mellett)
+
+Aktuális layout ezen a VPS-en (meglévő jukebox/trackpool **érintetlen**):
+
+| Szolgáltatás | Hol |
+|--------------|-----|
+| Tipp my draw kód | `/opt/tipp-my-draw` |
+| API (pm2) | `tipp-my-draw-api` → `127.0.0.1:3001` |
+| Mock DB | `/opt/tipp-my-draw/apps/api/data/db.json` (gitignore — scp-vel feltöltve) |
+| nginx tipp | `sites-available/tipp-my-draw` → **`:9080`** (amíg nincs saját domain) |
+| Trackpool | meglévő nginx site + docker `jukebox-cloud-relay` — **ne módosítsd** |
+
+Ideiglenes elérés DNS nélkül: `http://169.58.76.201:9080/`  
+Health: `http://169.58.76.201:9080/api/health` → `{"ok":true}`
+
+GitHub clone ezen a gépen: SSH host alias `github.com-tipp` + deploy key (`~/.ssh/github_tipp_key`).
+
+### DuckDNS + HTTPS (később, saját subdomain)
+
+1. DuckDNS: új hostname (pl. `tipp-my-draw.duckdns.org`) → A rekord: `169.58.76.201` (ne a trackpool hostname-ot írd felül).
+2. nginx: a tipp site-ban `listen 80` + `server_name tipp-my-draw.duckdns.org;` (és később 443), `root` marad `/opt/tipp-my-draw/apps/web/dist`. A **9080** blokk megmaradhat tesztnek, vagy törölhető.
+3. `pm2` env: `WEB_URL=https://tipp-my-draw.duckdns.org` a `deploy/ecosystem.config.cjs`-ben, majd `pm2 restart tipp-my-draw-api`.
+4. Certbot **csak** az új domainre: `certbot --nginx -d tipp-my-draw.duckdns.org` — ne futtasd a trackpool site fájlján.
+5. Contabo / UFW: 80 + 443 nyitva (9080 opcionális).
+
+Frissítés ezen a VPS-en:
+
+```bash
+cd /opt/tipp-my-draw
+git pull   # Host github.com-tipp
+npm install && npm run build
+pm2 restart tipp-my-draw-api
+# db.json-t ne írd felül pull-lal; backup: cp apps/api/data/db.json ~/db-backup-$(date +%F).json
+```
+
 ## Fájlok ebben a mappában
 
 - [`nginx.conf.example`](nginx.conf.example) — reverse proxy + SPA
