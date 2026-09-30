@@ -22,6 +22,11 @@ type PaintToolbarProps = {
   fillShape: boolean;
   canUndo: boolean;
   canRedo: boolean;
+  disabled?: boolean;
+  countdownLabel: string;
+  countdownUrgent?: boolean;
+  onSave: () => void;
+  saveDisabled?: boolean;
   onToolChange: (tool: PaintTool) => void;
   onColorChange: (color: string) => void;
   onLineWidthChange: (width: number) => void;
@@ -42,6 +47,8 @@ const TOOL_ICONS: { id: PaintTool; label: string; Icon: LucideIcon }[] = [
   { id: "eyedropper", label: "Pipetta", Icon: Pipette },
 ];
 
+const ICON_BTN = "!h-12 !min-w-12 !w-12 !px-0 shrink-0";
+
 export function PaintToolbar({
   tool,
   color,
@@ -49,6 +56,11 @@ export function PaintToolbar({
   fillShape,
   canUndo,
   canRedo,
+  disabled = false,
+  countdownLabel,
+  countdownUrgent = false,
+  onSave,
+  saveDisabled = false,
   onToolChange,
   onColorChange,
   onLineWidthChange,
@@ -58,77 +70,112 @@ export function PaintToolbar({
   onClear,
 }: PaintToolbarProps) {
   return (
-    <div className="mb-2 flex flex-col gap-2">
-      <div className="flex flex-wrap gap-1.5">
-        {TOOL_ICONS.map(({ id, label, Icon }) => (
-          <Button
-            key={id}
-            label={<Icon size={18} strokeWidth={2} aria-hidden />}
-            title={label}
-            aria-label={label}
-            variant={tool === id ? "primary" : "secondary"}
-            active={tool === id}
-            onClick={() => onToolChange(id)}
-            className="!h-10 !min-w-10 !w-10 !px-0"
-          />
-        ))}
+    <div className="paint-toolbar">
+      <div className="paint-toolbar__row paint-toolbar__row--tools">
+        <div className="paint-toolbar__tools">
+          {TOOL_ICONS.map(({ id, label, Icon }) => (
+            <Button
+              key={id}
+              label={<Icon size={24} strokeWidth={2} aria-hidden />}
+              title={label}
+              aria-label={label}
+              variant={tool === id ? "primary" : "secondary"}
+              active={tool === id}
+              disabled={disabled}
+              onClick={() => onToolChange(id)}
+              className={ICON_BTN}
+            />
+          ))}
+        </div>
+        <p
+          className={[
+            "draw-countdown-overlay paint-toolbar__countdown",
+            countdownUrgent ? "draw-countdown-overlay--urgent" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          aria-live="polite"
+        >
+          {countdownLabel}
+        </p>
       </div>
-      <div className="flex flex-wrap items-center gap-3 text-[var(--muted)]">
-        <label className="flex items-center gap-2 text-sm">
+
+      <div className="paint-toolbar__row paint-toolbar__row--opts">
+        <label className="paint-toolbar__label">
           Szín
           <input
             type="color"
             value={color}
+            disabled={disabled}
             onChange={(e) => onColorChange(e.target.value)}
+            className="paint-toolbar__color"
           />
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="paint-toolbar__label paint-toolbar__label--grow">
           Vastagság
           <input
             type="range"
             min={1}
             max={40}
             value={lineWidth}
+            disabled={disabled}
             onChange={(e) => onLineWidthChange(Number(e.target.value))}
+            className="paint-toolbar__range"
           />
-          <span className="tabular-nums text-xs">{lineWidth}</span>
+          <span className="paint-toolbar__width">{lineWidth}</span>
         </label>
         {(tool === "rect" || tool === "ellipse") && (
-          <label className="flex items-center gap-2 text-sm">
+          <label className="paint-toolbar__label">
             <input
               type="checkbox"
               checked={fillShape}
+              disabled={disabled}
               onChange={(e) => onFillShapeChange(e.target.checked)}
+              className="h-4 w-4"
             />
             Kitöltött alakzat
           </label>
         )}
-        <Button
-          label={<Undo2 size={18} aria-hidden />}
-          title="Undo"
-          aria-label="Undo"
-          variant="ghost"
-          onClick={onUndo}
-          disabled={!canUndo}
-          className="!h-10 !min-w-10 !w-10 !px-0"
-        />
-        <Button
-          label={<Redo2 size={18} aria-hidden />}
-          title="Redo"
-          aria-label="Redo"
-          variant="ghost"
-          onClick={onRedo}
-          disabled={!canRedo}
-          className="!h-10 !min-w-10 !w-10 !px-0"
-        />
-        <Button
-          label={<Trash2 size={18} aria-hidden />}
-          title="Törlés"
-          aria-label="Törlés"
-          variant="ghost"
-          onClick={onClear}
-          className="!h-10 !min-w-10 !w-10 !px-0"
-        />
+        <div className="paint-toolbar__history">
+          <Button
+            label={<Undo2 size={24} aria-hidden />}
+            title="Undo"
+            aria-label="Undo"
+            variant="ghost"
+            onClick={onUndo}
+            disabled={disabled || !canUndo}
+            className={ICON_BTN}
+          />
+          <Button
+            label={<Redo2 size={24} aria-hidden />}
+            title="Redo"
+            aria-label="Redo"
+            variant="ghost"
+            onClick={onRedo}
+            disabled={disabled || !canRedo}
+            className={ICON_BTN}
+          />
+          <Button
+            label={<Trash2 size={24} aria-hidden />}
+            title="Törlés"
+            aria-label="Törlés"
+            variant="ghost"
+            onClick={onClear}
+            disabled={disabled}
+            className={ICON_BTN}
+          />
+        </div>
+      </div>
+
+      <div className="paint-toolbar__row paint-toolbar__row--save">
+        <button
+          type="button"
+          className="paint-toolbar__save"
+          onClick={onSave}
+          disabled={saveDisabled}
+        >
+          Mentés
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "../ui/Button";
 import { TextField } from "../ui/TextField";
+import "../game/game-dialog.css";
 
 export type SaveDrawingMeta = {
   theme: string;
@@ -19,6 +20,8 @@ type SaveDrawingModalProps = {
   forceSave?: boolean;
   busy?: boolean;
   error?: string;
+  /** Cover only the paper host (keeps tool chrome visible). */
+  scoped?: boolean;
   onCancel: () => void;
   onDiscard: () => void;
   onConfirm: (meta: SaveDrawingMeta) => void;
@@ -31,6 +34,7 @@ export function SaveDrawingModal({
   forceSave = false,
   busy = false,
   error = "",
+  scoped = false,
   onCancel,
   onDiscard,
   onConfirm,
@@ -65,12 +69,22 @@ export function SaveDrawingModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className={
+        scoped
+          ? "game-dialog"
+          : "fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      }
       role="dialog"
       aria-modal="true"
       aria-labelledby="save-drawing-title"
     >
-      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--panel-solid)] p-5 shadow-xl">
+      <div
+        className={
+          scoped
+            ? "game-dialog__card w-full max-w-md text-left"
+            : "w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--panel-solid)] p-5 shadow-xl"
+        }
+      >
         <h2
           id="save-drawing-title"
           className="mb-1 text-lg font-semibold text-[var(--ink)]"

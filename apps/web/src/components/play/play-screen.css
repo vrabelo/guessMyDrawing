@@ -79,12 +79,7 @@
   overflow: hidden;
   border-radius: 1.75rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.06) 0%,
-    rgba(42, 28, 34, 0.42) 45%,
-    rgba(22, 14, 18, 0.55) 100%
-  );
+  background: var(--game-surface);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.05) inset,
     0 12px 40px rgba(0, 0, 0, 0.32);
@@ -92,23 +87,13 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* Idle / countdown — translucent frame; solid image area lives on placeholder/viewport */
+/* Idle / countdown — same surface as rankings until content fills the board */
 .play-board--idle {
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.06) 0%,
-    rgba(42, 28, 34, 0.42) 45%,
-    rgba(22, 14, 18, 0.55) 100%
-  );
+  background: var(--game-surface);
 }
 
 .play-board--puzzle {
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.06) 0%,
-    rgba(42, 28, 34, 0.42) 45%,
-    rgba(22, 14, 18, 0.55) 100%
-  );
+  background: var(--game-surface);
 }
 
 .play-board__viewport-host {
@@ -117,12 +102,7 @@
 
 /* Active round: full-board 16:9 host; chrome overlays on top (does not steal flex height) */
 .play-board--guessing {
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.07) 0%,
-    rgba(42, 28, 34, 0.52) 45%,
-    rgba(22, 14, 18, 0.68) 100%
-  );
+  background: var(--game-surface);
 }
 
 /* Bottom-dock puzzle inside full host — higher specificity beats shared place-items:center */
@@ -144,13 +124,7 @@
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  /* Translucent until a puzzle image fills the opaque viewport */
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.05) 0%,
-    rgba(42, 28, 34, 0.38) 50%,
-    rgba(22, 14, 18, 0.48) 100%
-  );
+  background: var(--game-surface);
 }
 
 .play-board__img {

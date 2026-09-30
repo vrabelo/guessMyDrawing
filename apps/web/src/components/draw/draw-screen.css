@@ -211,6 +211,160 @@
   align-self: stretch;
 }
 
+/* Bottom-dock drawing paper — same 10px padding as tipp; beats shared place-items:center */
+.draw-screen__canvas .game-canvas-viewport-host.game-canvas-viewport-host--dock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 10px 10px;
+  box-sizing: border-box;
+}
+
+.draw-screen__canvas
+  .game-canvas-viewport-host.game-canvas-viewport-host--dock
+  .game-canvas-viewport {
+  flex-shrink: 0;
+}
+
+/* Three equal tool chrome rows — 10px inset matches paper dock */
+.paint-toolbar {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 11.5rem;
+  box-sizing: border-box;
+  padding: 10px;
+  gap: 0.35rem;
+  color: var(--muted);
+}
+
+.paint-toolbar__row {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.paint-toolbar__row--tools {
+  justify-content: space-between;
+}
+
+.paint-toolbar__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.paint-toolbar__countdown.draw-countdown-overlay {
+  position: static;
+  top: auto;
+  right: auto;
+  flex-shrink: 0;
+  margin: 0;
+  pointer-events: none;
+  color: var(--accent);
+  text-shadow: none;
+}
+
+.paint-toolbar__countdown.draw-countdown-overlay--urgent {
+  color: #fca5a5;
+  text-shadow: none;
+}
+
+.paint-toolbar__row--opts {
+  flex-wrap: wrap;
+}
+
+.paint-toolbar__label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.paint-toolbar__label--grow {
+  min-width: 12rem;
+  flex: 1 1 auto;
+}
+
+.paint-toolbar__color {
+  height: 2.5rem;
+  width: 3rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  padding: 0.15rem;
+}
+
+.paint-toolbar__color:disabled,
+.paint-toolbar__range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.paint-toolbar__range {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.paint-toolbar__width {
+  width: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+}
+
+.paint-toolbar__history {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.paint-toolbar__row--save {
+  justify-content: flex-end;
+}
+
+.paint-toolbar__save {
+  box-sizing: border-box;
+  min-width: 8.5rem;
+  height: 3.25rem;
+  padding: 0 1.5rem;
+  border: 2px solid var(--accent);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.15s ease;
+}
+
+.paint-toolbar__save:hover:not(:disabled) {
+  background: var(--accent-muted);
+}
+
+.paint-toolbar__save:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.paint-toolbar__save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .draw-start-overlay {
   position: absolute;
   inset: 0.5rem;

@@ -4,6 +4,7 @@ import {
   useImperativeHandle,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { PaintToolbar } from "./PaintToolbar";
 import type { PaintTool } from "./types";
@@ -25,10 +26,26 @@ export type PaintCanvasHandle = {
 
 type PaintCanvasProps = {
   readOnly?: boolean;
+  countdownLabel: string;
+  countdownUrgent?: boolean;
+  onSave: () => void;
+  saveDisabled?: boolean;
+  /** Dialogs that should cover only the paper, not the tool chrome. */
+  overlay?: ReactNode;
 };
 
 export const PaintCanvas = forwardRef<PaintCanvasHandle, PaintCanvasProps>(
-  function PaintCanvas({ readOnly = false }, ref) {
+  function PaintCanvas(
+    {
+      readOnly = false,
+      countdownLabel,
+      countdownUrgent = false,
+      onSave,
+      saveDisabled = false,
+      overlay = null,
+    },
+    ref
+  ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
@@ -308,24 +325,27 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle, PaintCanvasProps>(
 
   return (
     <div className="paint-canvas-root">
-      {!readOnly ? (
-        <PaintToolbar
-          tool={tool}
-          color={color}
-          lineWidth={lineWidth}
-          fillShape={fillShape}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onToolChange={setTool}
-          onColorChange={setColor}
-          onLineWidthChange={setLineWidth}
-          onFillShapeChange={setFillShape}
-          onUndo={undo}
-          onRedo={redo}
-          onClear={clear}
-        />
-      ) : null}
-      <div className="game-canvas-viewport-host">
+      <PaintToolbar
+        tool={tool}
+        color={color}
+        lineWidth={lineWidth}
+        fillShape={fillShape}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        disabled={readOnly}
+        countdownLabel={countdownLabel}
+        countdownUrgent={countdownUrgent}
+        onSave={onSave}
+        saveDisabled={saveDisabled}
+        onToolChange={setTool}
+        onColorChange={setColor}
+        onLineWidthChange={setLineWidth}
+        onFillShapeChange={setFillShape}
+        onUndo={undo}
+        onRedo={redo}
+        onClear={clear}
+      />
+      <div className="game-canvas-viewport-host game-canvas-viewport-host--dock">
         <div className="game-canvas-viewport game-canvas-viewport--paper">
           <canvas
             ref={canvasRef}
@@ -343,6 +363,7 @@ export const PaintCanvas = forwardRef<PaintCanvasHandle, PaintCanvasProps>(
             onPointerLeave={onPointerUp}
           />
         </div>
+        {overlay}
       </div>
     </div>
   );

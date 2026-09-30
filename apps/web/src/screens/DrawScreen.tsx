@@ -1,12 +1,9 @@
 import { useEffect, useRef } from "react";
-import type { UserStatsResponse } from "@tipp-my-draw/shared";
+import { DRAW_TIME_LIMIT_MS, type UserStatsResponse } from "@tipp-my-draw/shared";
 import { PaintCanvas } from "../components/paint/PaintCanvas";
 import { MyDrawingsPanel } from "../components/draw/MyDrawingsPanel";
 import { SaveDrawingModal } from "../components/draw/SaveDrawingModal";
-import {
-  DrawCountdown,
-  formatDrawCountdown,
-} from "../components/draw/DrawCountdown";
+import { formatDrawCountdown } from "../components/draw/DrawCountdown";
 import { DrawToolbar } from "../components/draw/DrawToolbar";
 import { DrawIntroModal } from "../components/draw/DrawIntroModal";
 import { DrawStartModal } from "../components/draw/DrawStartModal";
@@ -46,6 +43,20 @@ export function DrawScreen({
   const themeDisplay = draw.selected?.published
     ? draw.meta.name.trim() || "…"
     : draw.themeLabel;
+
+  const countdownLabel = draw.timeExpired
+    ? "0:00"
+    : draw.timerActive
+      ? formatDrawCountdown(draw.remainingMs)
+      : formatDrawCountdown(DRAW_TIME_LIMIT_MS);
+
+  const countdownUrgent =
+    draw.timerActive && (draw.remainingMs <= 15_000 || draw.timeExpired);
+
+  const saveDisabled =
+    draw.busy ||
+    Boolean(draw.selected?.published) ||
+    !(draw.timerActive || draw.mustSave);
 
   return (
     <div className="draw-workspace draw-screen">
@@ -89,23 +100,40 @@ export function DrawScreen({
         ) : null}
 
         <div className="canvas-stage canvas-stage--landscape draw-stage draw-stage--fill draw-screen__canvas">
-          {draw.timerActive ? (
-            <DrawCountdown
-              label={
-                draw.timeExpired
-                  ? "0:00"
-                  : formatDrawCountdown(draw.remainingMs)
-              }
-              urgent={draw.remainingMs <= 15_000 || draw.timeExpired}
-            />
-          ) : null}
-          <PaintCanvas ref={draw.paintRef} readOnly={draw.readOnly} />
-          <DrawStartModal
-            open={draw.showStartModal}
-            themeLabel={themeDisplay}
-            busy={draw.busy}
-            onNewTheme={draw.rerollTheme}
-            onStart={draw.startClock}
+          <PaintCanvas
+            ref={draw.paintRef}
+            readOnly={draw.readOnly}
+            countdownLabel={countdownLabel}
+            countdownUrgent={countdownUrgent}
+            onSave={draw.openSaveModal}
+            saveDisabled={saveDisabled}
+            overlay={
+              <>
+                <DrawStartModal
+                  open={draw.showStartModal}
+                  themeLabel={themeDisplay}
+                  busy={draw.busy}
+                  onNewTheme={draw.rerollTheme}
+                  onStart={draw.startClock}
+                />
+                <SaveDrawingModal
+                  open={draw.modalOpen}
+                  scoped
+                  initial={draw.meta}
+                  guidedLock={
+                    draw.promptLocked &&
+                    !draw.selected?.published &&
+                    !draw.selectedId
+                  }
+                  forceSave={draw.mustSave}
+                  busy={draw.busy}
+                  error={draw.error}
+                  onCancel={draw.closeSaveModal}
+                  onDiscard={draw.discardDrawing}
+                  onConfirm={(m) => void draw.persist(m)}
+                />
+              </>
+            }
           />
         </div>
 
@@ -130,20 +158,6 @@ export function DrawScreen({
       <DrawIntroModal
         open={draw.introOpen}
         onConfirm={(dontShowAgain) => draw.dismissIntro(dontShowAgain)}
-      />
-
-      <SaveDrawingModal
-        open={draw.modalOpen}
-        initial={draw.meta}
-        guidedLock={
-          draw.promptLocked && !draw.selected?.published && !draw.selectedId
-        }
-        forceSave={draw.mustSave}
-        busy={draw.busy}
-        error={draw.error}
-        onCancel={draw.closeSaveModal}
-        onDiscard={draw.discardDrawing}
-        onConfirm={(m) => void draw.persist(m)}
       />
     </div>
   );

@@ -22,6 +22,13 @@
   --danger-border: rgba(248, 113, 113, 0.28);
   --glow-primary: rgba(255, 92, 138, 0.18);
   --glow-warm: rgba(251, 191, 36, 0.1);
+  /* Shared tipp/rajz/rankings surface (color + opacity) */
+  --game-surface: linear-gradient(
+    165deg,
+    rgba(255, 248, 240, 0.07) 0%,
+    rgba(42, 28, 34, 0.52) 45%,
+    rgba(22, 14, 18, 0.68) 100%
+  );
   --radius-game: 1.5rem;
   --radius-pill: 9999px;
   --toolbar-btn-h: 2.85rem;
@@ -140,12 +147,7 @@ textarea {
 .game-card {
   border-radius: calc(var(--radius-game) + 0.25rem);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.07) 0%,
-    rgba(42, 28, 34, 0.52) 45%,
-    rgba(22, 14, 18, 0.68) 100%
-  );
+  background: var(--game-surface);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.05) inset,
     0 18px 50px rgba(0, 0, 0, 0.4),
@@ -184,12 +186,7 @@ textarea {
 }
 
 .canvas-stage--portrait {
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.06) 0%,
-    rgba(42, 28, 34, 0.42) 45%,
-    rgba(22, 14, 18, 0.55) 100%
-  );
+  background: var(--game-surface);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow:
@@ -198,12 +195,7 @@ textarea {
 }
 
 .canvas-stage--landscape {
-  background: linear-gradient(
-    165deg,
-    rgba(255, 248, 240, 0.06) 0%,
-    rgba(42, 28, 34, 0.42) 45%,
-    rgba(22, 14, 18, 0.55) 100%
-  );
+  background: var(--game-surface);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow:
@@ -352,7 +344,7 @@ textarea {
   z-index: 20;
   margin: 0;
   pointer-events: none;
-  font-size: 1.35rem;
+  font-size: 1.485rem; /* +10% vs 1.35rem */
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
