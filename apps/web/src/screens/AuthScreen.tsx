@@ -27,14 +27,12 @@ export function AuthScreen({ onLoggedIn }: AuthScreenProps) {
           label="Bejelentkezés"
           variant={mode === "login" ? "primary" : "secondary"}
           type="button"
-          fullWidth
           onClick={() => setMode("login")}
         />
         <Button
           label="Regisztráció"
           variant={mode === "register" ? "primary" : "secondary"}
           type="button"
-          fullWidth
           onClick={() => setMode("register")}
         />
       </div>

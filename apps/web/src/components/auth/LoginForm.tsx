@@ -31,7 +31,6 @@ export function LoginForm({ onLoggedIn }: LoginFormProps) {
         label="Bejelentkezés"
         variant="primary"
         type="submit"
-        fullWidth
         disabled={form.busy}
         className="auth-form__submit"
       />

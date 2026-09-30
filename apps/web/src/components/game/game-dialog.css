@@ -55,17 +55,23 @@
 .game-dialog__actions {
   display: flex;
   width: 100%;
+  justify-content: center;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .game-dialog__actions--dual {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  justify-content: center;
   gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .game-dialog__actions--dual > button {
-  width: 100%;
-  min-width: 0;
+  width: auto;
+  min-width: var(--toolbar-btn-w);
+  flex: 0 0 auto;
 }
 
 /* Fixed overlays that sit above the whole screen (save / intro) */

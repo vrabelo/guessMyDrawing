@@ -109,14 +109,13 @@ export function SaveDrawingModal({
             {localError || error}
           </p>
         )}
-        <div className="mt-5 flex gap-2">
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
           {!forceSave ? (
             <Button
               label="Mégse"
               variant="ghost"
               onClick={onCancel}
               disabled={busy}
-              className="flex-1"
             />
           ) : null}
           <Button
@@ -124,14 +123,12 @@ export function SaveDrawingModal({
             variant="secondary"
             onClick={onDiscard}
             disabled={busy}
-            className="flex-1"
           />
           <Button
             label="Publikálás"
             variant="outline"
             onClick={publish}
             disabled={busy}
-            className="flex-1"
           />
         </div>
       </div>

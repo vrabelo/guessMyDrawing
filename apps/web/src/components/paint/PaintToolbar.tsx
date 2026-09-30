@@ -69,7 +69,7 @@ export function PaintToolbar({
             variant={tool === id ? "primary" : "secondary"}
             active={tool === id}
             onClick={() => onToolChange(id)}
-            className="!min-w-10 !px-2.5 !py-2"
+            className="!h-10 !min-w-10 !w-10 !px-0"
           />
         ))}
       </div>
@@ -110,7 +110,7 @@ export function PaintToolbar({
           variant="ghost"
           onClick={onUndo}
           disabled={!canUndo}
-          className="!min-w-10 !px-2.5"
+          className="!h-10 !min-w-10 !w-10 !px-0"
         />
         <Button
           label={<Redo2 size={18} aria-hidden />}
@@ -119,7 +119,7 @@ export function PaintToolbar({
           variant="ghost"
           onClick={onRedo}
           disabled={!canRedo}
-          className="!min-w-10 !px-2.5"
+          className="!h-10 !min-w-10 !w-10 !px-0"
         />
         <Button
           label={<Trash2 size={18} aria-hidden />}
@@ -127,7 +127,7 @@ export function PaintToolbar({
           aria-label="Törlés"
           variant="ghost"
           onClick={onClear}
-          className="!min-w-10 !px-2.5"
+          className="!h-10 !min-w-10 !w-10 !px-0"
         />
       </div>
     </div>

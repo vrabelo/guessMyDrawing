@@ -22,7 +22,9 @@ export function Modal({ open, title, message, onClose }: ModalProps) {
           {title}
         </h2>
         <p className="mb-4 text-sm text-[var(--muted)]">{message}</p>
-        <Button label="OK" variant="primary" onClick={onClose} fullWidth />
+        <div className="flex justify-center">
+          <Button label="OK" variant="primary" onClick={onClose} />
+        </div>
       </div>
     </div>
   );

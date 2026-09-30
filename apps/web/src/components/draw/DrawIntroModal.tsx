@@ -43,12 +43,13 @@ export function DrawIntroModal({ open, onConfirm }: DrawIntroModalProps) {
           />
           <span>Ne jelenjen meg többet</span>
         </label>
-        <Button
-          label="Oké"
-          variant="outline"
-          fullWidth
-          onClick={() => onConfirm(dontShowAgain)}
-        />
+        <div className="flex justify-center">
+          <Button
+            label="Oké"
+            variant="outline"
+            onClick={() => onConfirm(dontShowAgain)}
+          />
+        </div>
       </div>
     </div>
   );

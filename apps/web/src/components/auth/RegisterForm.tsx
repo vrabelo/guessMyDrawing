@@ -31,7 +31,6 @@ export function RegisterForm({ onLoggedIn }: RegisterFormProps) {
         label="Regisztráció"
         variant="primary"
         type="submit"
-        fullWidth
         disabled={form.busy}
         className="auth-form__submit"
       />

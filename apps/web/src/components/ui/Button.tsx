@@ -20,6 +20,10 @@ const variantClass: Record<Variant, string> = {
     "bg-transparent text-[var(--accent)] border-[var(--accent)] hover:bg-[var(--accent-muted)] hover:border-[var(--accent-hover)] shadow-none",
 };
 
+/** Shared CTA size — matches Kitalálom / Rajzolok (--toolbar-btn-*). */
+const sizeClass =
+  "h-[var(--toolbar-btn-h)] min-w-[var(--toolbar-btn-w)] px-5 text-sm font-semibold box-border";
+
 export function Button({
   label,
   variant = "secondary",
@@ -37,7 +41,8 @@ export function Button({
     <button
       type={type}
       className={[
-        "inline-flex cursor-pointer items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold",
+        "inline-flex cursor-pointer items-center justify-center rounded-full border",
+        sizeClass,
         "transition-all duration-200 ease-out",
         "disabled:cursor-not-allowed disabled:opacity-40",
         "active:scale-[0.98]",

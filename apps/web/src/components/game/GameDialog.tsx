@@ -80,7 +80,6 @@ export function GameDialog({
             variant="outline"
             disabled={primaryDisabled}
             onClick={onPrimary}
-            fullWidth={!dual}
           />
         </div>
       </div>
