@@ -145,7 +145,7 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: rgba(9, 9, 11, 0.72);
+  background: transparent;
 }
 
 .prestart-countdown {
@@ -156,7 +156,8 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: rgba(9, 9, 11, 0.88);
+  /* Same translucent board surface as rankings / home — not opaque black */
+  background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }

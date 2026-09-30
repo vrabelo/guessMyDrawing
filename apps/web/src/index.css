@@ -219,6 +219,12 @@ textarea {
     inset 0 0 60px rgba(9, 9, 11, 0.4);
 }
 
+/* Draw / tipp landscape stages: homogeneous rankings-style surface, no black vignette */
+.canvas-stage--landscape::after,
+.draw-screen__canvas.canvas-stage::after {
+  display: none;
+}
+
 .canvas-stage__img {
   position: absolute;
   inset: 0;

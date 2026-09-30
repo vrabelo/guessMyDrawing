@@ -6,7 +6,8 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: rgba(9, 9, 11, 0.72);
+  /* Let home/rankings-style board surface show through — no near-black scrim */
+  background: transparent;
   pointer-events: auto;
 }
 

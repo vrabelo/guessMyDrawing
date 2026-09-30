@@ -17,6 +17,7 @@
   min-width: 0;
   min-height: 0;
   place-items: center;
+  background: transparent;
 }
 
 .game-canvas-viewport {
